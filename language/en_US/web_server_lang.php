@@ -1,17 +1,22 @@
 <?php
 
-$lang['web_app_description'] = 'Web Server description';
-$lang['web_app_name'] = 'Web Server';
-$lang['web_web_server'] = 'Web Server';
-$lang['web_web_server_storage_plugin'] = 'Web Server Storage Plugin';
-$lang['web_aliases'] = 'Server Aliases';
-$lang['web_doc_root'] = 'Document Root';
-$lang['web_docroot_invalid'] = 'Document root is invalid.';
-$lang['web_server_name_invalid'] = 'Invalid server name.';
-$lang['web_sslconfig_missing'] = 'SSL configuration file is missing.';
-$lang['web_sslstate_invalid'] = 'Invalid SSL state.';
-$lang['web_site_exists'] = 'Web site already exists.';
-$lang['web_site_invalid'] = 'Web site name is invalid.';
-$lang['web_servername'] = 'Server Name';
-$lang['web_sslstate'] = 'SSL-enabled';
-$lang['web_site'] = 'Web Site';
+$lang['web_server_app_description'] = 'Web Server description'; //FIXME
+$lang['web_server_app_name'] = 'Web Server';
+$lang['web_server_web_server'] = 'Web Server';
+$lang['web_server_web_server_storage_plugin'] = 'Web Server Storage Plugin';
+$lang['web_server_aliases'] = 'Aliases';
+$lang['web_server_document_root'] = 'Document Root';
+$lang['web_server_document_root_invalid'] = 'Document root is invalid.';
+$lang['web_server_server_name_invalid'] = 'Invalid server name.';
+$lang['web_server_ssl_config_missing'] = 'SSL configuration file is missing.';
+$lang['web_server_ssl_state_invalid'] = 'SSL state is invalid.';
+$lang['web_server_site_exists'] = 'Web site already exists.';
+$lang['web_server_site_invalid'] = 'Web site name is invalid.';
+$lang['web_server_server_name'] = 'Server Name';
+$lang['web_server_ssl_enabled'] = 'SSL-enabled';
+$lang['web_server_web_site'] = 'Web Site';
+$lang['web_server_web_sites'] = 'Web Sites';
+$lang['web_server_access'] = 'Access';
+$lang['web_server_ftp_upload'] = 'FTP Upload';
+$lang['web_server_file_server_upload'] = 'File Server Upload';
+$lang['web_server_upload_access'] = 'Upload Access';

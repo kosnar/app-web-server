@@ -4,7 +4,7 @@
 // General information
 /////////////////////////////////////////////////////////////////////////////
 
-$app['basename'] = 'web';
+$app['basename'] = 'web_server';
 $app['version'] = '5.9.9.5';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
@@ -25,9 +25,8 @@ $app['subcategory'] = lang('base_subcategory_web');
 // Controllers
 /////////////////////////////////////////////////////////////////////////////
 
-$app['controllers']['web']['title'] = $app['name'];
+$app['controllers']['web_server']['title'] = $app['name'];
 $app['controllers']['settings']['title'] = lang('base_settings');
-$app['controllers']['server']['title'] = lang('base_server');
 $app['controllers']['domains']['title'] = lang('web_server_domains');
 
 /////////////////////////////////////////////////////////////////////////////
@@ -43,6 +42,7 @@ $app['requires'] = array(
 
 $app['core_requires'] = array(
     'app-network-core',
+    'app-flexshare-core',
     'httpd >= 2.2.15',
 );
 

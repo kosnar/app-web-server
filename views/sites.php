@@ -33,8 +33,9 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('web_server');
+$this->lang->load('base');
 $this->lang->load('groups');
+$this->lang->load('web_server');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Headers
@@ -42,7 +43,7 @@ $this->lang->load('groups');
 
 $headers = array(
     lang('web_server_web_site'),
-    lang('web_server_access'),
+    lang('web_server_upload_access'),
     lang('groups_group'),
 );
 
@@ -56,28 +57,26 @@ $anchors = array(anchor_add('/app/web_server/sites/add/'));
 // Items
 ///////////////////////////////////////////////////////////////////////////////
 
-//echo "<pre>";
-//print_r($sites);
 foreach ($sites as $site => $info) {
-
-    $ip = $entry['ip'];
-    $hostname = $entry['hostname'];
-    $alias = (count($entry['aliases']) > 0) ? $entry['aliases'][0] : '';
-    
-    // Add '...' to indicate more aliases exist
-    if (count($entry['aliases']) > 1)
-        $alias .= " ..."; 
 
     ///////////////////////////////////////////////////////////////////////////
     // Tweak buttons for default site
     ///////////////////////////////////////////////////////////////////////////
 
-    $detail_buttons = button_set(
-        array(
-            anchor_edit('/app/web_server/sites/edit/' . $domain, 'high'),
-            anchor_delete('/app/web_server/sites/delete/' . $domain, 'high')
-        )
-    );
+    if ($site === 'default') {
+        $detail_buttons = button_set(
+            array(
+                anchor_edit('/app/web_server/sites/edit/' . $site, 'high'),
+            )
+        );
+    } else {
+        $detail_buttons = button_set(
+            array(
+                anchor_edit('/app/web_server/sites/edit/' . $site, 'high'),
+                anchor_delete('/app/web_server/sites/delete/' . $site, 'high')
+            )
+        );
+    }
 
     ///////////////////////////////////////////////////////////////////////////
     // Item details
@@ -86,12 +85,22 @@ foreach ($sites as $site => $info) {
     // Order sites with default first.
     $order_site = "<span style='display: none'>1</span>$site";
 
+    $access = '';
+
+    if ($info['ftp'])
+        $access .= "<img src='" . clearos_app_htdocs('flexshare') . "/icon_ftp.png' alt='FTP'>";
+
+    if ($info['file'])
+        $access .= "<img src='" . clearos_app_htdocs('flexshare') . "/icon_samba.png' alt='" . lang('base_file') . "'>";
+
+
     $item['title'] = $site;
     $item['action'] = '/app/web_server/sites/edit/' . $site;
     $item['anchors'] = $detail_buttons;
     $item['details'] = array(
-        $order_ip,
-        $hostname,
+        $site,
+        $access,
+        $info['group'],
     );
 
     $items[] = $item;

@@ -42,18 +42,24 @@ $this->lang->load('web_server');
 
 if ($form_type === 'edit') {
     $read_only = FALSE;
+    $site_read_only = TRUE;
+    $form = 'web_server/sites/edit/' . $site;
     $buttons = array( 
         form_submit_update('submit'),
         anchor_cancel('/app/web_server/sites')
     );
 } else if ($form_type === 'add') {
     $read_only = FALSE;
+    $site_read_only = FALSE;
+    $form = 'web_server/sites/add';
     $buttons = array( 
         form_submit_add('submit'),
         anchor_cancel('/app/web_server/sites')
     );
 } else {
     $read_only = TRUE;
+    $form = 'web_server/sites';
+    $site_read_only = TRUE;
     $buttons = array( 
         anchor_cancel('/app/web_server/sites')
     );
@@ -63,10 +69,10 @@ if ($form_type === 'edit') {
 // Form
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('web_server/settings/edit');
+echo form_open($form);
 echo form_header(lang('base_settings'));
 
-echo field_input('site', $site, lang('web_server_web_site'), $read_only);
+echo field_input('site', $site, lang('web_server_web_site'), $site_read_only);
 echo field_input('aliases', $aliases, lang('web_server_aliases'), $read_only);
 echo field_toggle_enable_disable('ftp', $ftp, lang('web_server_ftp_upload'), $read_only);
 echo field_toggle_enable_disable('file', $file, lang('web_server_file_server_upload'), $read_only);

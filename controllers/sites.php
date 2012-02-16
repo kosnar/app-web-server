@@ -86,29 +86,29 @@ class Sites extends ClearOS_Controller
     /**
      * Add view.
      *
-     * @param string $domain domain
+     * @param string $site site
      *
      * @return view
      */
 
-    function add($domain = NULL)
+    function add($site = NULL)
     {
-        $this->_item($domain, 'add');
+        $this->_item($site, 'add');
     }
 
     /**
      * Delete view.
      *
-     * @param string $domain domain
+     * @param string $site site
      *
      * @return view
      */
 
-    function delete($domain = NULL)
+    function delete($site = NULL)
     {
-        $confirm_uri = '/app/web_server/sites/destroy/' . $domain;
+        $confirm_uri = '/app/web_server/sites/destroy/' . $site;
         $cancel_uri = '/app/web_server/sites';
-        $items = array($domain);
+        $items = array($site);
 
         $this->page->view_confirm_delete($confirm_uri, $cancel_uri, $items);
     }
@@ -116,25 +116,25 @@ class Sites extends ClearOS_Controller
     /**
      * Edit view.
      *
-     * @param string $domain domain
+     * @param string $site site
      *
      * @return view
      */
 
-    function edit($domain = NULL)
+    function edit($site = NULL)
     {
-        $this->_item($domain, 'edit');
+        $this->_item($site, 'edit');
     }
 
     /**
-     * Destroys domain.
+     * Destroys site.
      *
-     * @param string $domain domain
+     * @param string $site site
      *
      * @return view
      */
 
-    function destroy($domain = NULL)
+    function destroy($site = NULL)
     {
         // Load libraries
         //---------------
@@ -145,7 +145,7 @@ class Sites extends ClearOS_Controller
         //--------------
 
         try {
-            $this->httpd->delete_virtual_host($domain);
+            $this->httpd->delete_site($site);
 
             $this->page->set_status_deleted();
             redirect('/web_server/sites');
@@ -162,13 +162,13 @@ class Sites extends ClearOS_Controller
     /**
      * Common form.
      *
-     * @param string $domain    domain
+     * @param string $site    site
      * @param string $form_type form type
      *
      * @return view
      */
 
-    function _item($domain, $form_type)
+    function _item($site, $form_type)
     {
         // Load libraries
         //---------------
@@ -182,13 +182,11 @@ class Sites extends ClearOS_Controller
 
         $check_exists = ($form_type === 'add') ? TRUE : FALSE;
 
-        $this->form_validation->set_policy('ip', 'network/Hosts', 'validate_ip', TRUE, $check_exists);
-        $this->form_validation->set_policy('hostname', 'network/Hosts', 'validate_hostname', TRUE);
-
-        foreach ($_POST as $key => $value) {
-            if (preg_match('/^alias([0-9])+$/', $key))
-                $this->form_validation->set_policy($key, 'network/Hosts', 'validate_alias');
-        }
+        $this->form_validation->set_policy('site', 'web_server/Httpd', 'validate_site', TRUE, $check_exists);
+        // $this->form_validation->set_policy('aliases', 'web_server/Httpd', 'validate_aliases', TRUE);
+        // $this->form_validation->set_policy('ftp', 'web_server/Httpd', 'validate_ftp_state', TRUE);
+        // $this->form_validation->set_policy('file', 'web_server/Httpd', 'validate_file_state', TRUE);
+        // $this->form_validation->set_policy('group', 'web_server/Httpd', 'validate_group', TRUE);
 
         $form_ok = $this->form_validation->run();
 
@@ -197,26 +195,31 @@ class Sites extends ClearOS_Controller
 
         if ($this->input->post('submit') && ($form_ok === TRUE)) {
 
-            $ip = $this->input->post('ip');
-            $hostname = $this->input->post('hostname');
-            $aliases = array();
-
-            foreach ($_POST as $key => $value) {
-                if (preg_match('/^alias([0-9])+$/', $key) && !(empty($value)))
-                    $aliases[] = $this->input->post($key);
-            }
-
             try {
-                if ($form_type === 'edit') 
-                    $this->hosts->edit_entry($ip, $hostname, $aliases);
-                else
-                    $this->hosts->add_entry($ip, $hostname, $aliases);
+                if ($form_type === 'edit')  {
+                    $this->httpd->set_site(
+                        $this->input->post('site'),
+                        $this->input->post('aliases'),
+                        $this->input->post('group'),
+                        $this->input->post('ftp'),
+                        $this->input->post('file'),
+                        FALSE // FIXME
+                    );
+                } else {
+                    $this->httpd->add_site(
+                        $this->input->post('site'),
+                        $this->input->post('aliases'),
+                        $this->input->post('group'),
+                        $this->input->post('ftp'),
+                        $this->input->post('file'),
+                        FALSE // FIXME
+                    );
+                }
 
-                $this->dnsmasq->reset();
+                $this->httpd->reset();
 
-                // Return to summary page with status message
                 $this->page->set_status_added();
-                redirect('/dns');
+//                redirect('/web_server/sites');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;
@@ -227,8 +230,16 @@ class Sites extends ClearOS_Controller
         //------------------- 
 
         try {
-            if ($form_type === 'edit') 
+            $data['form_type'] = $form_type;
+
+            if ($form_type === 'edit')
                 $info = $this->httpd->get_site_info($site);
+
+            $data['site'] = empty($info['server_name']) ? '' :  $info['server_name'];
+            $data['aliases'] = empty($info['aliases']) ? '' :  $info['aliases'];
+            $data['ftp'] = empty($info['ftp']) ? FALSE :  $info['ftp'];
+            $data['file'] = empty($info['file']) ? FALSE :  $info['file'];
+            $data['group'] = empty($info['group']) ? '' :  $info['group'];
 
             // FIXME: move this logic to group manager... it's used a lot.
             $normal_groups = $this->group_manager->get_details();
@@ -242,8 +253,6 @@ class Sites extends ClearOS_Controller
             $this->page->view_exception($e);
             return;
         }
-
-        $data['form_type'] = $form_type;
 
         // Load the views
         //---------------

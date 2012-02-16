@@ -120,115 +120,82 @@ class Httpd extends Daemon
     }
 
     /**
-     * Adds the default host.
+     * Adds web site.
      *
-     * @param string $domain domain name
-     *
-     * @return void
-     * @throws Validation_Exception, Engine_Exception
-     */
-
-    function add_default_host($domain)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-        $this->add_host($domain, self::FILE_DEFAULT);
-    }
-
-    /**
-     * Adds a virtual host with defaults.
-     *
-     * @param string $domain domain name
+     * @param string $site       web site
+     * @param string $aliases    aliases
+     * @param string $group      group owner
+     * @param string $ftp        FTP enabled status
+     * @param string $smb        file (Samba) enabled status
+     * @param string $is_default set to TRUE if this is the default site
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
      */
 
-    function add_virtual_host($domain)
+    function add_site($site, $aliases, $group, $ftp, $smb, $is_default)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $this->add_host($domain, "$domain.vhost");
-    }
+        Validation_Exception::is_valid($this->validate_site($site));
 
-    /**
-     * Generic add virtual host.
-     *
-     * @param string $domain domain name
-     * @param string $confd  configuration file
-     *
-     * @return void
-     * @throws Validation_Exception, Engine_Exception
-     */
-
-    function add_host($domain, $confd)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // Validate
-        //---------
-
-        if (! $this->is_valid_domain($domain))
-            throw new Validation_Exception(lang('web_website_invalid'));
-
-        try {
-            $config = new File(self::PATH_CONFD . "/$confd");
-            if ($config->exists()) {
-                throw new Validation_Exception(lang('web_website_exists'));
-            }
-        } catch (Validation_Exception $e) {
-            throw new Validation_Exception(clearos_exception_message($e));
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
-
-        $docroot = self::PATH_VIRTUAL . "/$domain";
-        $entry = "<VirtualHost *:80>\n";
-        $entry .= "\tServerName $domain\n";
-        $entry .= "\tServerAlias *.$domain\n";
-        if ($confd == self::FILE_DEFAULT) {
-            $entry .= "\tDocumentRoot /var/www/html\n";
-            $entry .= "\tErrorLog /var/log/httpd/error_log\n";
-            $entry .= "\tCustomLog /var/log/httpd/access_log combined\n";
+        if ($is_default) {
+            $confd = self::FILE_DEFAULT;
+            $docroot = self::PATH_DEFAULT;
+            $log_prefix = '';
         } else {
-            $entry .= "\tDocumentRoot $docroot\n";
-            $entry .= "\tErrorLog /var/log/httpd/" . $domain . "_error_log\n";
-            $entry .= "\tCustomLog /var/log/httpd/" . $domain . "_access_log combined\n";
+            $confd = $site . '.vhost';
+            $docroot = self::PATH_VIRTUAL . '/' . $site;
+            $log_prefix = $site . '_';
         }
+
+        $config = new File(self::PATH_CONFD . '/' . $confd);
+
+        if ($config->exists())
+            throw new Validation_Exception(lang('web_server_website_exists'));
+
+        // Create configlet
+        //-----------------
+
+        $entry = "<VirtualHost *:80>\n";
+        $entry .= "\tServerName $site\n";
+        $entry .= "\tServerAlias *.$site\n";
+        $entry .= "\tDocumentRoot $docroot\n";
+        $entry .= "\tErrorLog /var/log/httpd/" . $log_prefix . "error_log\n";
+        $entry .= "\tCustomLog /var/log/httpd/" . $log_prefix . "access_log combined\n";
         $entry .= "</VirtualHost>\n";
 
-        try {
-            $config->create('root', 'root', '0644');
-            $config->add_lines($entry);
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        $config->create('root', 'root', '0644');
+        $config->add_lines($entry);
 
-        try {
-            $webfolder = new Folder($docroot);
-            if (! $webfolder->exists())
-                $webfolder->create('root', 'root', '0775');
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        // Create docroot folder
+        //----------------------
 
-        // Uncomment NameVirtualHost
-        try {
-            $httpcfg = new File(self::FILE_CONFIG);
-            $match = $httpcfg->replace_lines("/^[#\s]*NameVirtualHost.*\*/", "NameVirtualHost *:80\n");
-            if (! $match)
-                $httpcfg->add_lines("NameVirtualHost *:80\n");
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        $docroot_folder = new Folder($docroot);
+
+        if (! $docroot_folder->exists())
+            $docroot_folder->create('root', 'root', '0775');
+
+        // Tweak httpd.conf for virtual site support
+        //------------------------------------------
+
+        $httpcfg = new File(self::FILE_CONFIG);
+        $match = $httpcfg->replace_lines("/^[#\s]*NameVirtualHost.*\*/", "NameVirtualHost *:80\n");
+
+        if (! $match)
+            $httpcfg->add_lines("NameVirtualHost *:80\n");
 
         // Make sure our "Include conf.d/*.vhost" is still there
         try {
-            $includeline = $httpcfg->LookupLine("/^Include\s+conf.d\/\*\.vhost/");
+            $includeline = $httpcfg->lookup_line("/^Include\s+conf.d\/\*\.vhost/");
         } catch (File_No_Match_Exception $e) {
             $httpcfg->add_lines("Include conf.d/*.vhost\n");
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
+
+        // Use set_size to do the rest
+        //----------------------------
+
+        $this->set_site($site, $aliases, $group, $ftp, $smb, $is_default);
     }
 
     /**
@@ -241,18 +208,16 @@ class Httpd extends Daemon
      * @throws Validation_Exception, Engine_Exception
      */
 
-    function delete_virtual_host($site)
+    function delete_site($site)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // Validate
-        //---------
-
         Validation_Exception::is_valid($this->validate_site($site));
 
-        $flexshare = new Flexshare();
         try {
+            $flexshare = new Flexshare();
             $share = $flexshare->get_share($site);
+
             // Check to see if Directory == docroot
             $conf = $this->get_site_info($site);
             if (trim($conf['docroot']) == trim($share['ShareDir'])) {
@@ -260,17 +225,11 @@ class Httpd extends Daemon
                 $flexshare->delete_share($site, FALSE);
             }
         } catch (Flexshare_Not_Found_Exception $e) {
-            //Ignore
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+            // Ignore
         }
 
-        try {
-            $config = new File(self::PATH_CONFD . "/" . $site . ".vhost");
-            $config->delete();
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        $config = new File(self::PATH_CONFD . "/" . $site . ".vhost");
+        $config->delete();
     }
 
     /**
@@ -309,6 +268,9 @@ class Httpd extends Daemon
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        // Get Apache configuration settings
+        //----------------------------------
+
         $confd = ($site === 'default') ? 'default.conf' : "$site.vhost";
 
         $info = array();
@@ -341,8 +303,27 @@ class Httpd extends Daemon
         if ($count < 5)
             throw new Engine_Exception(lang('base_something_unexpected_happened'));
 
+        // Get Flexshare access
+        //---------------------
+
+        $flexshare = new Flexshare();
+
+        try {
+            $share = $flexshare->get_share($site);
+        } catch (Flexshare_Not_Found_Exception $e) {
+            $info['ftp'] = FALSE;
+            $info['file'] = FALSE;
+            $info['group'] = '';
+            return;
+        }
+
+        $info['ftp'] = $flexshare->get_ftp_state($site);
+        $info['file'] = $flexshare->get_file_state($site);
+        $info['group'] = $flexshare->get_group($site);
+
         return $info;
     }
+
     /**
      * Returns a list of configured sites.
      *
@@ -362,8 +343,11 @@ class Httpd extends Daemon
         $sites = array();
 
         foreach ($files as $file) {
-            if (preg_match("/\.vhost$/", $file))
-                array_push($sites, preg_replace("/\.vhost$/", "", $file));
+            if (preg_match("/\.vhost$/", $file)) {
+                $site = preg_replace('/\.vhost$/', '', $file);
+                $info = $this->get_site_info($site);
+                $sites[$site] = $info;
+            }
         }
 
         $sites['default'] = $this->get_default_site_info();
@@ -394,7 +378,7 @@ class Httpd extends Daemon
      * @throws Validation_Exception, Engine_Exception
      */
 
-    function get_virtual_host_info($site)
+    function get_virtual_site_info($site)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -413,7 +397,7 @@ class Httpd extends Daemon
      * @throws Validation_Exception, Engine_Exception
      */
 
-    function set_default_host($site, $alias)
+    function set_default_site($site, $alias)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -474,122 +458,84 @@ class Httpd extends Daemon
     }
 
     /**
-     * Sets parameters for a virtual host.
-     *
-     * @param string $site    site domain name
-     * @param string $alias   alias name
-     * @param string $docroot document root
-     *
-     * @return void
-     * @throws Validation_Exception, Engine_Exception
-     */
-
-    function set_virtual_host($site, $alias, $docroot)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // Validate
-        //---------
-
-        Validation_Exception::is_valid($this->validate_site($site));
-
-        Validation_Exception::is_valid($this->validate_doc_root($docroot));
-
-        // TODO validation
-
-        try {
-            $file = new File(self::PATH_CONFD . "/" . $site . ".vhost");
-            $file->replace_lines("/^\s*ServerAlias/", "\tServerAlias $alias\n");
-            $file->replace_lines("/^\s*DocumentRoot/", "\tDocumentRoot $docroot\n");
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
-    }
-
-    /**
      * Sets parameters for a site.
      *
      * @param string $site    web site
-     * @param string $docroot document root
+     * @param string $aliases aliases
      * @param string $group   the group owner
      * @param string $ftp     FTP enabled status
      * @param string $smb     File (SAMBA) enabled status
+     * @param string $is_default set to TRUE if this is the default site
      *
      * @return  void
      * @throws  Engine_Exception
      */
 
-    function configure_upload_methods($site, $docroot, $group, $ftp, $smb)
+    function set_site($site, $aliases, $group, $ftp, $smb, $is_default)
     {
         clearos_profile(__METHOD__, __LINE__);
     
-        if ($ftp && ! file_exists(COMMON_CORE_DIR . "/api/Proftpd.class.php"))
-            return;
+        Validation_Exception::is_valid($this->validate_site($site));
+        // TODO validation
 
-        if ($smb && ! file_exists(COMMON_CORE_DIR . "/api/Samba.class.php"))
-            return;
+        // Throw exception if FTP/Samba is requested, but not installed
+        if ($ftp && !clearos_library_installed('ftp/ProFTPd'))
+            throw new Validation_Exception('web_server_ftp_upload_is_not_available');
+
+        if ($smb && !clearos_library_installed('samba/Samba'))
+            throw new Validation_Exception('web_server_file_upload_is_not_available');
+
+        // Set variables for default/virtual situation
+        //--------------------------------------------
+
+        if ($is_default) {
+            $confd = self::FILE_DEFAULT;
+            $docroot = self::PATH_DEFAULT;
+        } else {
+            $confd = $site . '.vhost';
+            $docroot = self::PATH_VIRTUAL . '/' . $site;
+        }
+
+        // Set the server aliases
+        //-----------------------
+
+        $file = new File(self::PATH_CONFD . '/' . $confd);
+        $file->replace_lines("/^\s*ServerAlias/", "\tServerAlias $aliases\n");
+
+        // Set Flexshare access
+        //---------------------
+
+        $flexshare = new Flexshare();
+
+        $comment = lang('web_server_web_site') . ' - ' . $site;
 
         try {
-            $flexshare = new Flexshare();
-            try {
-                if (!$ftp && !$smb) {
-                    try {
-                        $flexshare->get_share($site);
-                        $flexshare->delete_share($site, FALSE);
-                    } catch (Flexshare_Not_Found_Exception $e) {
-                        // GetShare will trigger this exception on a virgin box
-                        // TODO: implement Flexshare.exists($name) instead of this hack
-                    } catch (Exception $e) {
-                        throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-                    }
-                    return;
-                }
-            } catch (Exception $e) {
-                throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-            }
-            try {
-                $share = $flexshare->get_share($site);
-            } catch (Flexshare_Not_Found_Exception $e) {
-                $flexshare->add_share($site, lang('web_site') . " - " . $site, $group, TRUE);
-                $flexshare->set_directory($site, self::PATH_DEFAULT);
-                $share = $flexshare->get_share($site);
-            } catch (Exception $e) {
-                throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-            }
-            // FTP
-            // We check setting of some parameters so we can allow user override using Flexshare.
-            if (!isset($share['FtpServerUrl']))
-                $flexshare->set_ftp_server_url($site, $site);
-            $flexshare->set_ftp_allow_passive($site, 1, Flexshare::FTP_PASV_MIN, Flexshare::FTP_PASV_MAX);
-            if (!isset($share['FtpPort']))
-                $flexshare->set_ftp_override_port($site, 0, Flexshare::DEFAULT_PORT_FTP);
-            if (!isset($share['FtpReqSsl']))
-                $flexshare->set_ftp_req_ssl($site, 0);
-            $flexshare->set_ftp_req_auth($site, 1);
-            $flexshare->set_ftp_allow_anonymous($site, 0);
-            $flexshare->set_ftp_user_owner($site, NULL);
-            //$flexshare->set_ftp_group_access($site, Array($group));
-            if (!isset($share['FtpGroupGreeting']))
-                $flexshare->set_ftp_group_greeting($site, lang('web_site') . ' - ' . $site);
-            $flexshare->set_ftp_group_permission($site, Flexshare::PERMISSION_READ_WRITE_PLUS);
-            $flexshare->set_ftp_group_umask($site, Array('owner'=>0, 'group'=>0, 'world'=>2));
-            $flexshare->set_ftp_enabled($site, $ftp);
-            // Samba
-            $flexshare->set_file_comment($site, lang('web_site') . ' - ' . $site);
-            $flexshare->set_file_public_access($site, 0);
-            $flexshare->set_file_permission($site, Flexshare::PERMISSION_READ_WRITE);
-            $flexshare->set_file_create_mask($site, Array('owner'=>6, 'group'=>6, 'world'=>4));
-            $flexshare->set_file_enabled($site, $smb);
-            $flexshare->set_file_browseable($site, 0);
-
-            // Globals
-            $flexshare->set_group($site, $group);
-            $flexshare->set_directory($site, $docroot);
-            $flexshare->toggle_share($site, ($ftp|$smb));
-
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+            $share = $flexshare->get_share($site);
+        } catch (Flexshare_Not_Found_Exception $e) {
+            $flexshare->add_share($site, $comment, $group, TRUE);
+            $flexshare->set_directory($site, self::PATH_DEFAULT);
+            $share = $flexshare->get_share($site);
         }
+
+        // FTP
+        $flexshare->set_ftp_server_url($site, $site);
+        $flexshare->set_ftp_allow_passive($site, 1, Flexshare::FTP_PASV_MIN, Flexshare::FTP_PASV_MAX);
+        $flexshare->set_ftp_override_port($site, 0, Flexshare::DEFAULT_PORT_FTP);
+        // FIXME $flexshare->set_ftp_req_ssl($site, 0);
+        $flexshare->set_ftp_group_greeting($site, $comment);
+        $flexshare->set_ftp_group_permission($site, Flexshare::PERMISSION_READ_WRITE_PLUS);
+        $flexshare->set_ftp_enabled($site, $ftp);
+
+        // Samba
+        $flexshare->set_file_comment($site, $comment);
+        $flexshare->set_file_permission($site, Flexshare::PERMISSION_READ_WRITE);
+        $flexshare->set_file_browseable($site, 1);
+        $flexshare->set_file_enabled($site, $smb);
+
+        // Globals
+        $flexshare->set_group($site, $group);
+        $flexshare->set_directory($site, $docroot);
+        $flexshare->set_share_state($site, TRUE);
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -622,11 +568,11 @@ class Httpd extends Daemon
      * @return mixed void if site is valid, errmsg otherwise
      */
 
-    function is_valid_site($site)
+    function validate_site($site)
     {
         // Allow underscores
         if (!preg_match("/^([0-9a-zA-Z\.\-_]+)$/", $site))
-            return lang('web_site_invalid');
+            return lang('web_server_site_invalid');
     }
 
     /**

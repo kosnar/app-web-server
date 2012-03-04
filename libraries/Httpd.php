@@ -275,9 +275,13 @@ class Httpd extends Daemon
 
         $info = array();
 
+try {
         $file = new File(self::PATH_CONFD . "/$confd");
         $lines = $file->get_contents_as_array();
         $count = 0;
+} catch (\Exception $e) {
+echo 'shit' . self::PATH_CONFD . "/$confd";
+}
 
         foreach ($lines as $line) {
             $result = preg_split('/\s+/', trim($line));

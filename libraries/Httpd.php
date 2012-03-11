@@ -7,7 +7,7 @@
  * @package    Httpd
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2003-2011 ClearFoundation
+ * @copyright  2003-2012 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/httpd/
  */
@@ -89,7 +89,7 @@ clearos_load_library('flexshare/Flexshare_Not_Found_Exception');
  * @package    Httpd
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2003-2011 ClearFoundation
+ * @copyright  2003-2012 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/httpd/
  */
@@ -104,7 +104,8 @@ class Httpd extends Daemon
     const PATH_DEFAULT = '/var/www/html';
     const PATH_VIRTUAL = '/var/www/virtual';
     const FILE_CONFIG = '/etc/httpd/conf/httpd.conf';
-    const FILE_DEFAULT = 'default.conf';
+    const FILE_DEFAULT = 'clearos.default.conf';
+    const FILE_PREFIX = 'clearos-virtual.';
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -144,14 +145,14 @@ class Httpd extends Daemon
             $docroot = self::PATH_DEFAULT;
             $log_prefix = '';
         } else {
-            $confd = $site . '.vhost';
+            $confd = self::FILE_PREFIX . $site . '.conf';
             $docroot = self::PATH_VIRTUAL . '/' . $site;
             $log_prefix = $site . '_';
         }
 
-        $config = new File(self::PATH_CONFD . '/' . $confd);
+        $configlet = new File(self::PATH_CONFD . '/' . $confd);
 
-        if ($config->exists())
+        if ($configlet->exists())
             throw new Validation_Exception(lang('web_server_website_exists'));
 
         // Create configlet
@@ -165,8 +166,8 @@ class Httpd extends Daemon
         $entry .= "\tCustomLog /var/log/httpd/" . $log_prefix . "access_log combined\n";
         $entry .= "</VirtualHost>\n";
 
-        $config->create('root', 'root', '0644');
-        $config->add_lines($entry);
+        $configlet->create('root', 'root', '0644');
+        $configlet->add_lines($entry);
 
         // Create docroot folder
         //----------------------
@@ -179,20 +180,13 @@ class Httpd extends Daemon
         // Tweak httpd.conf for virtual site support
         //------------------------------------------
 
-        $httpcfg = new File(self::FILE_CONFIG);
-        $match = $httpcfg->replace_lines("/^[#\s]*NameVirtualHost.*\*/", "NameVirtualHost *:80\n");
+        $config = new File(self::FILE_CONFIG);
+        $match = $config->replace_lines("/^[#\s]*NameVirtualHost.*\*/", "NameVirtualHost *:80\n");
 
         if (! $match)
-            $httpcfg->add_lines("NameVirtualHost *:80\n");
+            $config->add_lines("NameVirtualHost *:80\n");
 
-        // Make sure our "Include conf.d/*.vhost" is still there
-        try {
-            $includeline = $httpcfg->lookup_line("/^Include\s+conf.d\/\*\.vhost/");
-        } catch (File_No_Match_Exception $e) {
-            $httpcfg->add_lines("Include conf.d/*.vhost\n");
-        }
-
-        // Use set_size to do the rest
+        // Use set_site to do the rest
         //----------------------------
 
         $this->set_site($site, $aliases, $group, $ftp, $smb, $is_default);
@@ -220,7 +214,7 @@ class Httpd extends Daemon
 
             // Check to see if Directory == docroot
             $conf = $this->get_site_info($site);
-            if (trim($conf['docroot']) == trim($share['ShareDir'])) {
+            if (trim($conf['document_root']) === trim($share['ShareDir'])) {
                 // Default flag to *not* delete contents of dir
                 $flexshare->delete_share($site, FALSE);
             }
@@ -228,7 +222,7 @@ class Httpd extends Daemon
             // Ignore
         }
 
-        $config = new File(self::PATH_CONFD . "/" . $site . ".vhost");
+        $config = new File(self::PATH_CONFD . '/' . self::FILE_PREFIX . $site . '.conf');
         $config->delete();
     }
 
@@ -271,59 +265,46 @@ class Httpd extends Daemon
         // Get Apache configuration settings
         //----------------------------------
 
-        $confd = ($site === 'default') ? 'default.conf' : "$site.vhost";
+        $confd = ($site === 'default') ? self::FILE_DEFAULT : self::FILE_PREFIX . $site . '.conf';
 
         $info = array();
 
-try {
-        $file = new File(self::PATH_CONFD . "/$confd");
+        $file = new File(self::PATH_CONFD . '/' . $confd);
         $lines = $file->get_contents_as_array();
         $count = 0;
-} catch (\Exception $e) {
-echo 'shit' . self::PATH_CONFD . "/$confd";
-}
 
         foreach ($lines as $line) {
             $result = preg_split('/\s+/', trim($line));
 
-            if ($result[0] == 'ServerAlias') {
+            if ($result[0] == 'ServerAlias')
                 $info['aliases'] = $result[1];
-                $count++;
-            } else if ($result[0] == 'DocumentRoot') {
+            else if ($result[0] == 'DocumentRoot')
                 $info['document_root'] = $result[1];
-                $count++;
-            } else if ($result[0] == 'ServerName') {
+            else if ($result[0] == 'ServerName')
                 $info['server_name'] = $result[1];
-                $count++;
-            } else if ($result[0] == 'ErrorLog') {
+            else if ($result[0] == 'ErrorLog')
                 $info['error_log'] = $result[1];
-                $count++;
-            } else if ($result[0] == 'CustomLog') {
+            else if ($result[0] == 'CustomLog')
                 $info['custom_log'] = $result[1];
-                $count++;
-            }
         }
-
-        if ($count < 5)
-            throw new Engine_Exception(lang('base_something_unexpected_happened'));
 
         // Get Flexshare access
         //---------------------
 
         $flexshare = new Flexshare();
 
+        $flexshare_name = ($site === 'default') ? $info['server_name'] : $site;
+
         try {
-            $share = $flexshare->get_share($site);
+            $share = $flexshare->get_share($flexshare_name);
+            $info['ftp'] = $flexshare->get_ftp_state($flexshare_name);
+            $info['file'] = $flexshare->get_file_state($flexshare_name);
+            $info['group'] = $flexshare->get_group($flexshare_name);
         } catch (Flexshare_Not_Found_Exception $e) {
             $info['ftp'] = FALSE;
             $info['file'] = FALSE;
             $info['group'] = '';
-            return;
         }
-
-        $info['ftp'] = $flexshare->get_ftp_state($site);
-        $info['file'] = $flexshare->get_file_state($site);
-        $info['group'] = $flexshare->get_group($site);
 
         return $info;
     }
@@ -347,83 +328,36 @@ echo 'shit' . self::PATH_CONFD . "/$confd";
         $sites = array();
 
         foreach ($files as $file) {
-            if (preg_match("/\.vhost$/", $file)) {
-                $site = preg_replace('/\.vhost$/', '', $file);
+            if ($file === self::FILE_DEFAULT) {
+                $sites['default'] = $this->get_site_info('default');
+            } else if (preg_match("/^" . self::FILE_PREFIX . ".*\.conf$/", $file)) {
+                $site = preg_replace('/^' . self::FILE_PREFIX . '/', '', $file);
+                $site = preg_replace('/\.conf$/', '', $site);
                 $info = $this->get_site_info($site);
                 $sites[$site] = $info;
             }
         }
 
-        $sites['default'] = $this->get_default_site_info();
-
         return $sites;
     }
 
     /**
-     * Returns the default site information.
+     * Returns state of default web site configuration.
      *
-     * @return array default site information
+     * @return boolean TRUE if default web site is configured
      * @throws Engine_Exception
      */
 
-    function get_default_site_info()
+    function is_default_set()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->get_site_info('default');
-    }
+        $file = new File(self::FILE_DEFAULT);
 
-    /**
-     * Returns the site informatio for the given site.
-     *
-     * @param string $site web site
-     *
-     * @return array site information
-     * @throws Validation_Exception, Engine_Exception
-     */
-
-    function get_virtual_site_info($site)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        Validation_Exception::is_valid($this->validate_site($site));
-
-        return $this->get_site_info($site);
-    }
-
-    /**
-     * Sets parameters for a virtual host.
-     *
-     * @param string $site  web site
-     * @param string $alias alias name
-     *
-     * @return void
-     * @throws Validation_Exception, Engine_Exception
-     */
-
-    function set_default_site($site, $alias)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // Validate
-        //---------
-
-        Validation_Exception::is_valid($this->validate_site($site));
-
-        try {
-            $file = new File(self::PATH_CONFD . "/" . self::FILE_DEFAULT);
-            $file->replace_lines("/^\s*ServerName/", "\tServerName $site\n");
-            $file->replace_lines("/^\s*ServerAlias/", "\tServerAlias $alias\n");
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
-
-        try {
-            $file = new File($filename);
-            $file->replace_lines("/^\s*ServerName/", "ServerName $site\n");
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
+        if ($file->exists())
+            return TRUE;
+        else
+            return FALSE;
     }
 
     /**
@@ -496,7 +430,7 @@ echo 'shit' . self::PATH_CONFD . "/$confd";
             $confd = self::FILE_DEFAULT;
             $docroot = self::PATH_DEFAULT;
         } else {
-            $confd = $site . '.vhost';
+            $confd = self::FILE_PREFIX . $site . '.conf';
             $docroot = self::PATH_VIRTUAL . '/' . $site;
         }
 
@@ -516,8 +450,7 @@ echo 'shit' . self::PATH_CONFD . "/$confd";
         try {
             $share = $flexshare->get_share($site);
         } catch (Flexshare_Not_Found_Exception $e) {
-            $flexshare->add_share($site, $comment, $group, TRUE);
-            $flexshare->set_directory($site, self::PATH_DEFAULT);
+            $flexshare->add_share($site, $comment, $group, self::PATH_DEFAULT, TRUE);
             $share = $flexshare->get_share($site);
         }
 
@@ -545,24 +478,6 @@ echo 'shit' . self::PATH_CONFD . "/$confd";
     ///////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N   R O U T I N E S                                 //
     ///////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Validation routine for checking state of default site.
-     *
-     * @return mixed void if state is valid, errmsg otherwise
-     */
-
-    function is_default_set()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-        $file = new File(self::PATH_CONFD . "/" . self::FILE_DEFAULT);
-        if (!$file->exists()) {
-            // Need file class for lang
-            $file = new File();
-            $filename = self::PATH_CONFD . "/" . self::FILE_DEFAULT;
-            return lang('base_exception_file_not_found') . ' (' . $filename . ')';
-        }
-    }
 
     /**
      * Validation routine for site.

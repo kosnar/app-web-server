@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'web_server';
-$app['version'] = '5.9.9.5';
+$app['version'] = '1.0.6';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -27,7 +27,7 @@ $app['subcategory'] = lang('base_subcategory_web');
 
 $app['controllers']['web_server']['title'] = $app['name'];
 $app['controllers']['settings']['title'] = lang('base_settings');
-$app['controllers']['domains']['title'] = lang('web_server_domains');
+$app['controllers']['sites']['title'] = lang('web_server_sites');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

@@ -51,7 +51,10 @@ $headers = array(
 // Anchors
 ///////////////////////////////////////////////////////////////////////////////
 
-$anchors = array(anchor_add('/app/web_server/sites/add/'));
+if (empty($sites['default']))
+    $anchors = array(anchor_custom('/app/web_server/sites/add_default/', lang('web_server_configure_default_web_site')));
+else
+    $anchors = array(anchor_add('/app/web_server/sites/add/'));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Items
@@ -66,7 +69,7 @@ foreach ($sites as $site => $info) {
     if ($site === 'default') {
         $detail_buttons = button_set(
             array(
-                anchor_edit('/app/web_server/sites/edit/' . $site, 'high'),
+                anchor_edit('/app/web_server/sites/edit_default', 'high'),
             )
         );
     } else {

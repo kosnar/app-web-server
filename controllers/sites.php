@@ -97,6 +97,19 @@ class Sites extends ClearOS_Controller
     }
 
     /**
+     * Add view.
+     *
+     * @param string $site site
+     *
+     * @return view
+     */
+
+    function add_default($site = NULL)
+    {
+        $this->_item($site, 'add_default', TRUE);
+    }
+
+    /**
      * Delete view.
      *
      * @param string $site site
@@ -124,6 +137,19 @@ class Sites extends ClearOS_Controller
     function edit($site = NULL)
     {
         $this->_item($site, 'edit');
+    }
+
+    /**
+     * Edit view.
+     *
+     * @param string $site site
+     *
+     * @return view
+     */
+
+    function edit_default()
+    {
+        $this->_item('default', 'edit_default', TRUE);
     }
 
     /**
@@ -162,13 +188,14 @@ class Sites extends ClearOS_Controller
     /**
      * Common form.
      *
-     * @param string $site    site
-     * @param string $form_type form type
+     * @param string $site        site
+     * @param string $form_type   form type
+     * @param boolean $is_default set to TRUE if this is the default site
      *
      * @return view
      */
 
-    function _item($site, $form_type)
+    function _item($site, $form_type, $is_default = FALSE)
     {
         // Load libraries
         //---------------
@@ -196,14 +223,14 @@ class Sites extends ClearOS_Controller
         if ($this->input->post('submit') && ($form_ok === TRUE)) {
 
             try {
-                if ($form_type === 'edit')  {
+                if (($form_type === 'edit') || ($form_type === 'edit_default'))  {
                     $this->httpd->set_site(
                         $this->input->post('site'),
                         $this->input->post('aliases'),
                         $this->input->post('group'),
                         $this->input->post('ftp'),
                         $this->input->post('file'),
-                        FALSE // FIXME
+                        $is_default
                     );
                 } else {
                     $this->httpd->add_site(
@@ -212,14 +239,14 @@ class Sites extends ClearOS_Controller
                         $this->input->post('group'),
                         $this->input->post('ftp'),
                         $this->input->post('file'),
-                        FALSE // FIXME
+                        $is_default
                     );
                 }
 
                 $this->httpd->reset();
 
                 $this->page->set_status_added();
-//                redirect('/web_server/sites');
+                redirect('/web_server/sites');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
                 return;
@@ -231,8 +258,9 @@ class Sites extends ClearOS_Controller
 
         try {
             $data['form_type'] = $form_type;
+            $data['default_set'] = $this->httpd->is_default_set();
 
-            if ($form_type === 'edit')
+            if (($form_type === 'edit') || ($form_type === 'edit_default'))
                 $info = $this->httpd->get_site_info($site);
 
             $data['site'] = empty($info['server_name']) ? '' :  $info['server_name'];
@@ -241,11 +269,7 @@ class Sites extends ClearOS_Controller
             $data['file'] = empty($info['file']) ? FALSE :  $info['file'];
             $data['group'] = empty($info['group']) ? '' :  $info['group'];
 
-            // FIXME: move this logic to group manager... it's used a lot.
-            $normal_groups = $this->group_manager->get_details();
-            $builtin_groups = $this->group_manager->get_details('builtin');
-
-            $groups = array_merge($builtin_groups, $normal_groups);
+            $groups = $this->group_manager->get_details();
 
             foreach ($groups as $group => $details)
                 $data['groups'][$group] = $group . ' - ' . $details['description'];

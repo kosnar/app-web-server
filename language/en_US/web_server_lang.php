@@ -20,3 +20,4 @@ $lang['web_server_access'] = 'Access';
 $lang['web_server_ftp_upload'] = 'FTP Upload';
 $lang['web_server_file_server_upload'] = 'File Server Upload';
 $lang['web_server_upload_access'] = 'Upload Access';
+$lang['web_server_configure_default_web_site'] = 'Configure Default Web Site';

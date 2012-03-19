@@ -272,7 +272,8 @@ class Sites extends ClearOS_Controller
             $groups = $this->group_manager->get_details();
 
             foreach ($groups as $group => $details)
-                $data['groups'][$group] = $group . ' - ' . $details['description'];
+                $data['groups'][$group] = $group . ' - ' . $details['core']['description'];
+
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;

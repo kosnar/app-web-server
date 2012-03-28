@@ -4,7 +4,7 @@
  * Httpd class.
  *
  * @category   Apps
- * @package    Httpd
+ * @package    Web_Server
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2012 ClearFoundation
@@ -59,15 +59,18 @@ use \clearos\apps\base\Daemon as Daemon;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\flexshare\Flexshare as Flexshare;
+use \clearos\apps\groups\Group_Factory as Group_Factory;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('flexshare/Flexshare');
+clearos_load_library('groups/Group_Factory');
 
 // Exceptions
 //-----------
 
+use \Exception as Exception;
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
 use \clearos\apps\base\File_No_Match_Exception as File_No_Match_Exception;
 use \clearos\apps\base\Validation_Exception as Validation_Exception;
@@ -86,7 +89,7 @@ clearos_load_library('flexshare/Flexshare_Not_Found_Exception');
  * Httpd class.
  *
  * @category   Apps
- * @package    Httpd
+ * @package    Web_Server
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2012 ClearFoundation
@@ -127,14 +130,14 @@ class Httpd extends Daemon
      * @param string $aliases    aliases
      * @param string $group      group owner
      * @param string $ftp        FTP enabled status
-     * @param string $smb        file (Samba) enabled status
+     * @param string $samba      file (Samba) enabled status
      * @param string $is_default set to TRUE if this is the default site
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
      */
 
-    function add_site($site, $aliases, $group, $ftp, $smb, $is_default)
+    function add_site($site, $aliases, $group, $ftp, $samba, $is_default)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -189,7 +192,7 @@ class Httpd extends Daemon
         // Use set_site to do the rest
         //----------------------------
 
-        $this->set_site($site, $aliases, $group, $ftp, $smb, $is_default);
+        $this->set_site($site, $aliases, $group, $ftp, $samba, $is_default);
     }
 
     /**
@@ -208,18 +211,21 @@ class Httpd extends Daemon
 
         Validation_Exception::is_valid($this->validate_site($site));
 
-        try {
-            $flexshare = new Flexshare();
-            $share = $flexshare->get_share($site);
+        $flexshare = new Flexshare();
 
-            // Check to see if Directory == docroot
+        try {
+            $share = $flexshare->get_share($site);
             $conf = $this->get_site_info($site);
-            if (trim($conf['document_root']) === trim($share['ShareDir'])) {
-                // Default flag to *not* delete contents of dir
-                $flexshare->delete_share($site, FALSE);
-            }
         } catch (Flexshare_Not_Found_Exception $e) {
-            // Ignore
+            // Not fatal
+        }
+
+        try {
+            // Check to see if Directory == docroot
+            if (trim($conf['document_root']) === trim($share['ShareDir']))
+                $flexshare->delete_share($site, FALSE);
+        } catch (Exception $e) {
+            // Keep going with cleanup
         }
 
         $config = new File(self::PATH_CONFD . '/' . self::FILE_PREFIX . $site . '.conf');
@@ -274,7 +280,7 @@ class Httpd extends Daemon
         $count = 0;
 
         foreach ($lines as $line) {
-            $result = preg_split('/\s+/', trim($line));
+            $result = preg_split('/\s+/', trim($line), 2);
 
             if ($result[0] == 'ServerAlias')
                 $info['aliases'] = $result[1];
@@ -398,29 +404,31 @@ class Httpd extends Daemon
     /**
      * Sets parameters for a site.
      *
-     * @param string $site    web site
-     * @param string $aliases aliases
-     * @param string $group   the group owner
-     * @param string $ftp     FTP enabled status
-     * @param string $smb     File (SAMBA) enabled status
+     * @param string $site       web site
+     * @param string $aliases    aliases
+     * @param string $group      the group owner
+     * @param string $ftp        FTP enabled status
+     * @param string $samba      file (SAMBA) enabled status
      * @param string $is_default set to TRUE if this is the default site
      *
      * @return  void
      * @throws  Engine_Exception
      */
 
-    function set_site($site, $aliases, $group, $ftp, $smb, $is_default)
+    function set_site($site, $aliases, $group, $ftp, $samba, $is_default)
     {
         clearos_profile(__METHOD__, __LINE__);
     
         Validation_Exception::is_valid($this->validate_site($site));
-        // TODO validation
+        Validation_Exception::is_valid($this->validate_aliases($aliases));
+        Validation_Exception::is_valid($this->validate_group($group));
+        Validation_Exception::is_valid($this->validate_ftp_state($ftp));
+        Validation_Exception::is_valid($this->validate_file_state($samba));
 
-        // Throw exception if FTP/Samba is requested, but not installed
         if ($ftp && !clearos_library_installed('ftp/ProFTPd'))
             throw new Validation_Exception('web_server_ftp_upload_is_not_available');
 
-        if ($smb && !clearos_library_installed('samba/Samba'))
+        if ($samba && !clearos_library_installed('samba/Samba'))
             throw new Validation_Exception('web_server_file_upload_is_not_available');
 
         // Set variables for default/virtual situation
@@ -467,7 +475,7 @@ class Httpd extends Daemon
         $flexshare->set_file_comment($site, $comment);
         $flexshare->set_file_permission($site, Flexshare::PERMISSION_READ_WRITE);
         $flexshare->set_file_browseable($site, 1);
-        $flexshare->set_file_enabled($site, $smb);
+        $flexshare->set_file_enabled($site, $samba);
 
         // Globals
         $flexshare->set_group($site, $group);
@@ -480,11 +488,69 @@ class Httpd extends Daemon
     ///////////////////////////////////////////////////////////////////////////
 
     /**
+     * Validation routine for aliases.
+     *
+     * @param string $aliases aliases
+     *
+     * @return error message if aliases is invalid
+     */
+
+    function validate_aliases($aliases)
+    {
+        if ($aliases && (!preg_match("/^([0-9a-zA-Z\.\-_ ,\*]+)$/", $aliases)))
+            return lang('web_server_aliases_invalid');
+    }
+
+    /**
+     * Validation routine for flle server state.
+     *
+     * @param string $state state
+     *
+     * @return error message if file server state is invalid
+     */
+
+    function validate_file_state($state)
+    {
+        if (! clearos_is_valid_boolean($state))
+            return lang('web_server_file_server_state_invalid');
+    }
+
+    /**
+     * Validation routine for FTP state.
+     *
+     * @param string $state state
+     *
+     * @return error message if FTP state is invalid
+     */
+
+    function validate_ftp_state($state)
+    {
+        if (! clearos_is_valid_boolean($state))
+            return lang('web_server_ftp_state_invalid');
+    }
+
+    /**
+     * Validation routine for group.
+     *
+     * @param string $group_name group name
+     *
+     * @return error message if group is invalid
+     */
+
+    function validate_group($group_name)
+    {
+        $group = Group_Factory::create($group_name);
+
+        if (! $group->exists())
+            return lang('web_server_group_invalid');
+    }
+
+    /**
      * Validation routine for site.
      *
      * @param string $site site
      *
-     * @return mixed void if site is valid, errmsg otherwise
+     * @return error message if site is invalid
      */
 
     function validate_site($site)
@@ -506,24 +572,6 @@ class Httpd extends Daemon
     {
         if (!preg_match("/^[A-Za-z0-9\.\-_]+$/", $server_name))
             return lang('web_server_server_name_invalid');
-    }
-
-    /**
-     * Validation routine for docroot.
-     *
-     * @param string $docroot document root
-     *
-     * @return boolean TRUE if document root is valid
-     */
-
-    function is_valid_doc_root($docroot)
-    {
-        // Allow underscores
-        if (!isset($docroot) || !$docroot || $docroot == '')
-            return lang('web_docroot_invalid');
-        $folder = new Folder($docroot);
-        if (! $folder->exists())
-            return lang('base_exception_folder_not_found') . ' (' . $docroot . ')';
     }
 }
 

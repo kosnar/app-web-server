@@ -61,6 +61,10 @@ require clearos_app_base('base') . '/controllers/daemon.php';
 
 class Server extends Daemon
 {
+    /**
+     * Web server daemon constructor.
+     */
+
     function __construct()
     {
         parent::__construct('httpd', 'web_server');

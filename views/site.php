@@ -96,11 +96,13 @@ echo fieldset_footer();
 
 echo fieldset_header(lang('web_server_upload_access'));
 echo field_dropdown('group', $groups, $group, lang('groups_group'), $read_only);
-echo field_toggle_enable_disable('ftp', $ftp, lang('web_server_ftp_upload'), $read_only);
-echo field_toggle_enable_disable('file', $file, lang('web_server_file_server_upload'), $read_only);
-echo fieldset_footer();
 
-echo fieldset_header(lang('base_options'));
+if ($ftp_available)
+    echo field_toggle_enable_disable('ftp', $ftp, lang('web_server_ftp_upload'), $read_only);
+
+if ($file_available)
+    echo field_toggle_enable_disable('file', $file, lang('web_server_file_server_upload'), $read_only);
+
 echo fieldset_footer();
 
 echo field_button_set($buttons);

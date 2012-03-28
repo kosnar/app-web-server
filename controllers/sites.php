@@ -61,6 +61,16 @@ class Sites extends ClearOS_Controller
 
     function index()
     {
+        // Show account status widget if we're not in a happy state
+        //---------------------------------------------------------
+
+        $this->load->module('accounts/status');
+
+        if ($this->status->unhappy()) {
+            $this->status->widget('web_server');
+            return;
+        }
+
         // Load libraries
         //---------------
 
@@ -142,8 +152,6 @@ class Sites extends ClearOS_Controller
     /**
      * Edit view.
      *
-     * @param string $site site
-     *
      * @return view
      */
 
@@ -188,8 +196,8 @@ class Sites extends ClearOS_Controller
     /**
      * Common form.
      *
-     * @param string $site        site
-     * @param string $form_type   form type
+     * @param string  $site       site
+     * @param string  $form_type  form type
      * @param boolean $is_default set to TRUE if this is the default site
      *
      * @return view
@@ -209,11 +217,15 @@ class Sites extends ClearOS_Controller
 
         $check_exists = ($form_type === 'add') ? TRUE : FALSE;
 
+        $group = ($this->input->post('group')) ? $this->input->post('group') : '';
+        $ftp_state = ($this->input->post('ftp')) ? $this->input->post('ftp') : FALSE;
+        $file_state = ($this->input->post('file')) ? $this->input->post('file') : FALSE;
+
         $this->form_validation->set_policy('site', 'web_server/Httpd', 'validate_site', TRUE, $check_exists);
-        // $this->form_validation->set_policy('aliases', 'web_server/Httpd', 'validate_aliases', TRUE);
-        // $this->form_validation->set_policy('ftp', 'web_server/Httpd', 'validate_ftp_state', TRUE);
-        // $this->form_validation->set_policy('file', 'web_server/Httpd', 'validate_file_state', TRUE);
-        // $this->form_validation->set_policy('group', 'web_server/Httpd', 'validate_group', TRUE);
+        $this->form_validation->set_policy('aliases', 'web_server/Httpd', 'validate_aliases');
+        $this->form_validation->set_policy('ftp', 'web_server/Httpd', 'validate_ftp_state');
+        $this->form_validation->set_policy('file', 'web_server/Httpd', 'validate_file_state');
+        $this->form_validation->set_policy('group', 'web_server/Httpd', 'validate_group');
 
         $form_ok = $this->form_validation->run();
 
@@ -221,31 +233,33 @@ class Sites extends ClearOS_Controller
         //-------------------
 
         if ($this->input->post('submit') && ($form_ok === TRUE)) {
-
             try {
-                if (($form_type === 'edit') || ($form_type === 'edit_default'))  {
+                if (($form_type === 'edit') || ($form_type === 'edit_default')) {
                     $this->httpd->set_site(
                         $this->input->post('site'),
                         $this->input->post('aliases'),
-                        $this->input->post('group'),
-                        $this->input->post('ftp'),
-                        $this->input->post('file'),
+                        $group,
+                        $ftp_state,
+                        $file_state,
                         $is_default
                     );
+
+                    $this->page->set_status_updated();
                 } else {
                     $this->httpd->add_site(
                         $this->input->post('site'),
                         $this->input->post('aliases'),
-                        $this->input->post('group'),
-                        $this->input->post('ftp'),
-                        $this->input->post('file'),
+                        $group,
+                        $ftp_state,
+                        $file_state,
                         $is_default
                     );
+
+                    $this->page->set_status_added();
                 }
 
                 $this->httpd->reset();
 
-                $this->page->set_status_added();
                 redirect('/web_server/sites');
             } catch (Exception $e) {
                 $this->page->view_exception($e);
@@ -259,6 +273,9 @@ class Sites extends ClearOS_Controller
         try {
             $data['form_type'] = $form_type;
             $data['default_set'] = $this->httpd->is_default_set();
+
+            $data['ftp_available'] = clearos_app_installed('ftp');
+            $data['file_available'] = clearos_app_installed('samba');
 
             if (($form_type === 'edit') || ($form_type === 'edit_default'))
                 $info = $this->httpd->get_site_info($site);

@@ -180,6 +180,7 @@ class Sites extends ClearOS_Controller
 
         try {
             $this->httpd->delete_site($site);
+            $this->httpd->reset(TRUE);
 
             $this->page->set_status_deleted();
             redirect('/web_server/sites');
@@ -258,7 +259,7 @@ class Sites extends ClearOS_Controller
                     $this->page->set_status_added();
                 }
 
-                $this->httpd->reset();
+                $this->httpd->reset(TRUE);
 
                 redirect('/web_server/sites');
             } catch (Exception $e) {
@@ -282,8 +283,8 @@ class Sites extends ClearOS_Controller
 
             $data['site'] = empty($info['server_name']) ? '' :  $info['server_name'];
             $data['aliases'] = empty($info['aliases']) ? '' :  $info['aliases'];
-            $data['ftp'] = empty($info['ftp']) ? FALSE :  $info['ftp'];
-            $data['file'] = empty($info['file']) ? FALSE :  $info['file'];
+            $data['ftp'] = empty($info['ftp']) ? TRUE :  $info['ftp'];
+            $data['file'] = empty($info['file']) ? TRUE :  $info['file'];
             $data['group'] = empty($info['group']) ? '' :  $info['group'];
 
             $groups = $this->group_manager->get_details();

@@ -108,7 +108,7 @@ class Httpd extends Daemon
     const PATH_VIRTUAL = '/var/www/virtual';
     const FILE_CONFIG = '/etc/httpd/conf/httpd.conf';
     const FILE_DEFAULT = 'clearos.default.conf';
-    const FILE_PREFIX = 'clearos-virtual.';
+    const FILE_PREFIX = 'virtual.';
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -121,6 +121,8 @@ class Httpd extends Daemon
     function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        parent::__construct('httpd');
     }
 
     /**

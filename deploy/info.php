@@ -44,6 +44,7 @@ $app['core_requires'] = array(
     'app-network-core',
     'app-flexshare-core',
     'httpd >= 2.2.15',
+    'mod_ssl'
 );
 
 $app['core_directory_manifest'] = array(

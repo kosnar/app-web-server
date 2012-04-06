@@ -1,7 +1,7 @@
 
 Name: app-web-server
 Epoch: 1
-Version: 1.0.10
+Version: 1.0.11
 Release: 1%{dist}
 Summary: Web Server
 License: GPLv3
@@ -26,7 +26,10 @@ Requires: app-base-core
 Requires: app-network-core
 Requires: app-flexshare-core
 Requires: httpd >= 2.2.15
+Requires: mod_authnz_external
+Requires: mod_authz_unixgroup
 Requires: mod_ssl
+Requires: pwauth
 
 %description core
 The web server app provides an instance of the Apache web server.  This app can be used to create simple standalone websites or as part of a broader infrastructure to deploy web-based applications based on other technologies like PHP, MySQL, Javascript etc.

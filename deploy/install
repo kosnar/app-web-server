@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Initialize hostname with default
+#---------------------------------
+
+/usr/clearos/app/web_server/deploy/initialize
+
+# Reload clearsyncd
+#------------------
+
+/sbin/service clearsyncd condrestart >/dev/null 2>&1

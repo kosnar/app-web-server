@@ -180,7 +180,6 @@ class Sites extends ClearOS_Controller
 
         try {
             $this->httpd->delete_site($site);
-            $this->httpd->reset(TRUE);
 
             $this->page->set_status_deleted();
             redirect('/web_server/sites');
@@ -258,8 +257,6 @@ class Sites extends ClearOS_Controller
 
                     $this->page->set_status_added();
                 }
-
-                $this->httpd->reset(TRUE);
 
                 redirect('/web_server/sites');
             } catch (Exception $e) {

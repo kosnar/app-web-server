@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Reload Samba on a configuration change
+#---------------------------------------
+
+if [ "$1" == "configuration_change_event" ]; then
+    logger -p local6.notice -t clearsync "web_server - reloading httpd"
+    # TODO: this is a workaround to get around weird restart behavior
+    killall -61 syswatch
+fi

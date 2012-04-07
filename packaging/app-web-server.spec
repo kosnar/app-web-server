@@ -1,7 +1,7 @@
 
 Name: app-web-server
 Epoch: 1
-Version: 1.0.11
+Version: 1.0.12
 Release: 1%{dist}
 Summary: Web Server
 License: GPLv3
@@ -30,6 +30,7 @@ Requires: mod_authnz_external
 Requires: mod_authz_unixgroup
 Requires: mod_ssl
 Requires: pwauth
+Requires: syswatch >= 6.2.3
 
 %description core
 The web server app provides an instance of the Apache web server.  This app can be used to create simple standalone websites or as part of a broader infrastructure to deploy web-based applications based on other technologies like PHP, MySQL, Javascript etc.
@@ -45,6 +46,7 @@ mkdir -p -m 755 %{buildroot}/usr/clearos/apps/web_server
 cp -r * %{buildroot}/usr/clearos/apps/web_server/
 
 install -d -m 0755 %{buildroot}/var/clearos/httpd
+install -D -m 0644 packaging/filewatch-web-server-configuration.conf %{buildroot}/etc/clearsync.d/filewatch-web-server-configuration.conf
 install -D -m 0644 packaging/httpd.php %{buildroot}/var/clearos/base/daemon/httpd.php
 
 %post
@@ -89,4 +91,5 @@ exit 0
 /usr/clearos/apps/web_server/deploy
 /usr/clearos/apps/web_server/language
 /usr/clearos/apps/web_server/libraries
+/etc/clearsync.d/filewatch-web-server-configuration.conf
 /var/clearos/base/daemon/httpd.php

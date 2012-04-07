@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'web_server';
-$app['version'] = '1.0.11';
+$app['version'] = '1.0.12';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -48,6 +48,7 @@ $app['core_requires'] = array(
     'mod_authz_unixgroup',
     'mod_ssl',
     'pwauth',
+    'syswatch >= 6.2.3',
 );
 
 $app['core_directory_manifest'] = array(
@@ -56,4 +57,5 @@ $app['core_directory_manifest'] = array(
 
 $app['core_file_manifest'] = array(
     'httpd.php'=> array('target' => '/var/clearos/base/daemon/httpd.php'),
+    'filewatch-web-server-configuration.conf'=> array('target' => '/etc/clearsync.d/filewatch-web-server-configuration.conf'),
 );

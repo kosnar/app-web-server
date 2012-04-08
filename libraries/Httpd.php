@@ -468,7 +468,6 @@ class Httpd extends Daemon
         $flexshare->set_ftp_server_url($site, $site);
         $flexshare->set_ftp_allow_passive($site, 1, Flexshare::FTP_PASV_MIN, Flexshare::FTP_PASV_MAX);
         $flexshare->set_ftp_override_port($site, 0, Flexshare::DEFAULT_PORT_FTP);
-        // FIXME $flexshare->set_ftp_req_ssl($site, 0);
         $flexshare->set_ftp_group_greeting($site, $comment);
         $flexshare->set_ftp_group_permission($site, Flexshare::PERMISSION_READ_WRITE_PLUS);
         $flexshare->set_ftp_enabled($site, $ftp);

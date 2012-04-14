@@ -1,7 +1,7 @@
 
 Name: app-web-server
 Epoch: 1
-Version: 1.0.15
+Version: 1.1.0
 Release: 1%{dist}
 Summary: Web Server
 License: GPLv3
@@ -19,7 +19,7 @@ Requires: app-network
 The web server app provides an instance of the Apache web server.  This app can be used to create simple standalone websites or as part of a broader infrastructure to deploy web-based applications based on other technologies like PHP, MySQL, Javascript etc.
 
 %package core
-Summary: Web Server - APIs and install
+Summary: Web Server - Core
 License: LGPLv3
 Group: ClearOS/Libraries
 Requires: app-base-core

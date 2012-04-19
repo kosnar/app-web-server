@@ -1,6 +1,6 @@
 <?php
 
-$lang['web_server_app_description'] = 'The web server app provides an instance of the Apache web server.  This app can be used to create simple standalone websites or as part of a broader infrastructure to deploy web-based applications based on other technologies like PHP, MySQL, Javascript etc.';
+$lang['web_server_app_description'] = 'The Web Server app can be used to create simple standalone web sites or as part of a broader infrastructure to deploy web-based applications using technologies like PHP, MySQL, and Javascript.';
 $lang['web_server_app_name'] = 'Web Server';
 $lang['web_server_web_server'] = 'Web Server';
 $lang['web_server_web_server_storage_plugin'] = 'Web Server Storage Plugin';

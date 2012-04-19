@@ -16,7 +16,7 @@ Requires: app-users
 Requires: app-network
 
 %description
-The web server app provides an instance of the Apache web server.  This app can be used to create simple standalone websites or as part of a broader infrastructure to deploy web-based applications based on other technologies like PHP, MySQL, Javascript etc.
+The Web Server app can be used to create simple standalone web sites or as part of a broader infrastructure to deploy web-based applications using technologies like PHP, MySQL, and Javascript.
 
 %package core
 Summary: Web Server - Core
@@ -34,7 +34,7 @@ Requires: pwauth
 Requires: syswatch >= 6.2.3
 
 %description core
-The web server app provides an instance of the Apache web server.  This app can be used to create simple standalone websites or as part of a broader infrastructure to deploy web-based applications based on other technologies like PHP, MySQL, Javascript etc.
+The Web Server app can be used to create simple standalone web sites or as part of a broader infrastructure to deploy web-based applications using technologies like PHP, MySQL, and Javascript.
 
 This package provides the core API and libraries.
 

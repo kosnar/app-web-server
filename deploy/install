@@ -3,7 +3,7 @@
 # Initialize hostname with default
 #---------------------------------
 
-/usr/clearos/app/web_server/deploy/initialize
+/usr/clearos/apps/web_server/deploy/initialize
 
 # Reload clearsyncd
 #------------------

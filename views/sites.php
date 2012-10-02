@@ -85,8 +85,10 @@ foreach ($sites as $site => $info) {
     // Item details
     ///////////////////////////////////////////////////////////////////////////
 
-    // Order sites with default first.
-    $order_site = "<span style='display: none'>1</span>$site";
+    // Add a default string
+    $web_site = $info['server_name'];
+    if ($site == 'default')
+        $web_site .= ' - ' . lang('base_default');
 
     $access = '';
 
@@ -96,12 +98,11 @@ foreach ($sites as $site => $info) {
     if ($info['file'])
         $access .= "<img src='" . clearos_app_htdocs('flexshare') . "/icon_samba.png' alt='" . lang('base_file') . "'>";
 
-
     $item['title'] = $site;
     $item['action'] = '/app/web_server/sites/edit/' . $site;
     $item['anchors'] = $detail_buttons;
     $item['details'] = array(
-        $site,
+        $web_site,
         $access,
         $info['group'],
     );

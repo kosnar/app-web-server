@@ -27,7 +27,7 @@ $app['subcategory'] = lang('base_subcategory_web');
 
 $app['controllers']['web_server']['title'] = $app['name'];
 $app['controllers']['settings']['title'] = lang('base_settings');
-$app['controllers']['sites']['title'] = lang('web_server_sites');
+$app['controllers']['sites']['title'] = lang('web_server_web_sites');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging

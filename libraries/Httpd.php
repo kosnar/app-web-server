@@ -158,7 +158,7 @@ class Httpd extends Daemon
         $configlet = new File(self::PATH_CONFD . '/' . $confd);
 
         if ($configlet->exists())
-            throw new Validation_Exception(lang('web_server_website_exists'));
+            throw new Validation_Exception(lang('web_server_web_site_exists'));
 
         // Create configlet
         //-----------------

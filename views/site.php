@@ -35,6 +35,7 @@
 
 $this->lang->load('base');
 $this->lang->load('groups');
+$this->lang->load('network');
 $this->lang->load('web_server');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -90,7 +91,7 @@ echo form_open($form);
 echo form_header(lang('base_settings'));
 
 echo fieldset_header(lang('web_server_web_site'));
-echo field_input('site', $site, lang('web_server_web_site'), $site_read_only);
+echo field_input('site', $site, lang('network_domain'), $site_read_only);
 echo field_input('aliases', $aliases, lang('web_server_aliases'), $read_only);
 echo fieldset_footer();
 

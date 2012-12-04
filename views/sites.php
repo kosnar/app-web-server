@@ -93,10 +93,10 @@ foreach ($sites as $site => $info) {
     $access = '';
 
     if ($info['ftp'])
-        $access .= "<img src='" . clearos_app_htdocs('flexshare') . "/icon_ftp.png' alt='FTP'>";
+        $access .= "<img src='" . clearos_app_htdocs('web_server') . "/icon_ftp.png' alt='FTP'>";
 
     if ($info['file'])
-        $access .= "<img src='" . clearos_app_htdocs('flexshare') . "/icon_samba.png' alt='" . lang('base_file') . "'>";
+        $access .= "<img src='" . clearos_app_htdocs('web_server') . "/icon_samba.png' alt='" . lang('base_file') . "'>";
 
     $item['title'] = $site;
     $item['action'] = '/app/web_server/sites/edit/' . $site;

@@ -430,7 +430,7 @@ class Httpd extends Daemon
         if ($ftp && !clearos_library_installed('ftp/ProFTPd'))
             throw new Validation_Exception('web_server_ftp_upload_is_not_available');
 
-        if ($samba && !clearos_library_installed('samba/Samba'))
+        if ($samba && !clearos_library_installed('samba_common/Samba'))
             throw new Validation_Exception('web_server_file_upload_is_not_available');
 
         // Set variables for default/virtual situation

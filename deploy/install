@@ -31,6 +31,15 @@ CustomLog logs\/ssl_combined_access_log combined/' /etc/httpd/conf.d/ssl.conf > 
     fi
 fi
 
+# Disable welcome.conf
+#---------------------
+
+CHECK=`grep "^<LocationMatch" /etc/httpd/conf.d/welcome.conf 2>/dev/null`
+if [ -n "$CHECK" ]; then
+    logger -p local6.notice -t installer "app-web-server-core - disabling welcome.conf splash page"
+    sed -i -e 's/^/#/' /etc/httpd/conf.d/welcome.conf
+fi
+
 # Add default logo and start page
 #--------------------------------
 

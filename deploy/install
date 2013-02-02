@@ -9,6 +9,15 @@ if [ -z "$CHECK" ]; then
     sed -i -e 's/^DirectoryIndex/DirectoryIndex index.htm/' /etc/httpd/conf/httpd.conf
 fi
 
+# Set ServerTokens to prevent version leak
+#-----------------------------------------
+
+CHECK=`grep "^ServerTokens[[:space:]]*OS" /etc/httpd/conf/httpd.conf`
+if [ -n "$CHECK" ]; then
+    logger -p local6.notice -t installer "app-web-server-core - setting ServerTokens to prevent version leak"
+    sed -i -e 's/^ServerTokens.*/ServerTokens Prod/' /etc/httpd/conf/httpd.conf
+fi
+
 # Add combined logging for SSL site
 #----------------------------------
 

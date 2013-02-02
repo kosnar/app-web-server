@@ -1,5 +1,42 @@
 #!/bin/sh
 
+# Add index.htm to DirectoryIndex
+#--------------------------------
+
+CHECK=`grep "^DirectoryIndex.*index.htm[[:space:]]" /etc/httpd/conf/httpd.conf`
+if [ -z "$CHECK" ]; then
+    logger -p local6.notice -t installer "app-web-server-core - adding index.htm to DirectoryIndex"
+    sed -i -e 's/^DirectoryIndex/DirectoryIndex index.htm/' /etc/httpd/conf/httpd.conf
+fi
+
+# Add combined logging for SSL site
+#----------------------------------
+
+if [ -e /etc/httpd/conf.d/ssl.conf ]; then
+    CHECKSSL=`grep "^CustomLog logs\/ssl_combined_access_log" /etc/httpd/conf.d/ssl.conf`
+    if [ -z "$CHECKSSL" ]; then
+        logger -p local6.notice -t installer "app-web-server-core - adding extra log format to SSL site"
+        sed -e 's/<VirtualHost _default_:443>/<VirtualHost _default_:443>\
+CustomLog logs\/ssl_combined_access_log combined/' /etc/httpd/conf.d/ssl.conf > /etc/httpd/conf.d/ssl.conf.new
+        mv /etc/httpd/conf.d/ssl.conf.new /etc/httpd/conf.d/ssl.conf
+    fi
+fi
+
+# Add default logo and start page
+#--------------------------------
+
+if ( [ ! -f /var/www/html/logo.png ] && [ -f /usr/share/system/modules/release/logo.png ] ); then
+    logger -p local6.notice -t installer "app-web-server-core - adding default logo"
+    cp /usr/share/system/modules/release/logo.png /var/www/html/logo.png
+    chmod 664 /var/www/html/logo.png
+fi
+
+if ( [ ! -f /var/www/html/index.html ] && [ -f /usr/share/system/modules/product/default-web.html ] ); then
+    logger -p local6.notice -t installer "app-web-server-core - updating default web page"
+    cp -p /usr/share/system/modules/product/default-web.html /var/www/html/index.html
+    chmod 664 /var/www/html/index.html
+fi
+
 # Initialize hostname with default
 #---------------------------------
 

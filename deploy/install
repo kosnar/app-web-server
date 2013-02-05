@@ -43,15 +43,16 @@ fi
 # Add default logo and start page
 #--------------------------------
 
-if ( [ ! -f /var/www/html/logo.png ] && [ -f /usr/share/system/modules/release/logo.png ] ); then
+# TODO: update logos in clearos-logos so that the "ring theme" image does not have to be used here
+if ( [ ! -f /var/www/html/logo.png ] && [ -f /usr/share/plymouth/themes/rings/header-image.png ] ); then
     logger -p local6.notice -t installer "app-web-server-core - adding default logo"
-    cp /usr/share/system/modules/release/logo.png /var/www/html/logo.png
+    cp /usr/share/plymouth/themes/rings/header-image.png /var/www/html/logo.png
     chmod 664 /var/www/html/logo.png
 fi
 
-if ( [ ! -f /var/www/html/index.html ] && [ -f /usr/share/system/modules/product/default-web.html ] ); then
+if [ ! -f /var/www/html/index.html ]; then
     logger -p local6.notice -t installer "app-web-server-core - updating default web page"
-    cp -p /usr/share/system/modules/product/default-web.html /var/www/html/index.html
+    cp -p /usr/clearos/apps/web_server/deploy/index.html /var/www/html/index.html
     chmod 664 /var/www/html/index.html
 fi
 

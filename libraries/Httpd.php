@@ -3,9 +3,9 @@
 /**
  * Httpd class.
  *
- * @category   Apps
- * @package    Web_Server
- * @subpackage Libraries
+ * @category   apps
+ * @package    web-server
+ * @subpackage libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2012 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
@@ -88,9 +88,9 @@ clearos_load_library('flexshare/Flexshare_Not_Found_Exception');
 /**
  * Httpd class.
  *
- * @category   Apps
- * @package    Web_Server
- * @subpackage Libraries
+ * @category   apps
+ * @package    web-server
+ * @subpackage libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2003-2012 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later

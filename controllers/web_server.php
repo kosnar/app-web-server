@@ -3,9 +3,9 @@
 /**
  * Web server controller.
  *
- * @category   Apps
- * @package    Web_Server
- * @subpackage Controllers
+ * @category   apps
+ * @package    web-server
+ * @subpackage controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2012 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
@@ -36,9 +36,9 @@
 /**
  * Web server controller.
  *
- * @category   Apps
- * @package    Web_Server
- * @subpackage Controllers
+ * @category   apps
+ * @package    web-server
+ * @subpackage controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2012 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later

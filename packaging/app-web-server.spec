@@ -25,7 +25,7 @@ Group: ClearOS/Libraries
 Requires: app-base-core
 Requires: app-network-core
 Requires: app-flexshare-core
-Requires: app-php-core
+Requires: app-php-core >= 1:1.4.40
 Requires: httpd >= 2.2.15
 Requires: mod_authnz_external
 Requires: mod_authz_unixgroup

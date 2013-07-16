@@ -18,3 +18,6 @@ $lang['web_server_file_server_state_invalid'] = 'File server state is invalid.';
 $lang['web_server_ftp_state_invalid'] = 'FTP state is invalid.';
 $lang['web_server_group_invalid'] = 'Group in invalid.';
 $lang['web_server_web_site_exists'] = 'Web site already exists.';
+$lang['web_server_web_site_hostname'] = 'Web Site Hostname';
+$lang['web_server_web_applications'] = 'Web Applications';
+$lang['web_server_web_application'] = 'Web Application';

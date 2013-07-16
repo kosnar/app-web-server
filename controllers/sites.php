@@ -7,7 +7,7 @@
  * @package    web-server
  * @subpackage controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2012 ClearFoundation
+ * @copyright  2012-2013 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/web_server/
  */
@@ -35,6 +35,9 @@
 
 use \Exception as Exception;
 
+use \clearos\apps\web_server\Httpd as Httpd;
+use \clearos\apps\flexshare\Flexshare as Flexshare;
+
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
@@ -46,7 +49,7 @@ use \Exception as Exception;
  * @package    web-server
  * @subpackage controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2012 ClearFoundation
+ * @copyright  2012-2013 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/web_server/
  */
@@ -82,6 +85,7 @@ class Sites extends ClearOS_Controller
 
         try {
             $data['sites'] = $this->httpd->get_sites();
+            $data['default_set'] = $this->httpd->is_default_set();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
@@ -103,21 +107,11 @@ class Sites extends ClearOS_Controller
 
     function add($site = NULL)
     {
-        $this->_item($site, 'add');
+        $this->_item('add', $site);
     }
 
     /**
-     * Add view.
-     *
-     * @param string $site site
-     *
-     * @return view
-     */
-
-    function add_default($site = NULL)
-    {
-        $this->_item($site, 'add_default', TRUE);
-    }
+     * Delete view.
 
     /**
      * Delete view.
@@ -127,7 +121,7 @@ class Sites extends ClearOS_Controller
      * @return view
      */
 
-    function delete($site = NULL)
+    function delete($site)
     {
         $confirm_uri = '/app/web_server/sites/destroy/' . $site;
         $cancel_uri = '/app/web_server/sites';
@@ -144,20 +138,9 @@ class Sites extends ClearOS_Controller
      * @return view
      */
 
-    function edit($site = NULL)
+    function edit($site)
     {
-        $this->_item($site, 'edit');
-    }
-
-    /**
-     * Edit view.
-     *
-     * @return view
-     */
-
-    function edit_default()
-    {
-        $this->_item('default', 'edit_default', TRUE);
+        $this->_item('edit', $site);
     }
 
     /**
@@ -168,7 +151,7 @@ class Sites extends ClearOS_Controller
      * @return view
      */
 
-    function destroy($site = NULL)
+    function destroy($site)
     {
         // Load libraries
         //---------------
@@ -196,36 +179,49 @@ class Sites extends ClearOS_Controller
     /**
      * Common form.
      *
-     * @param string  $site       site
      * @param string  $form_type  form type
-     * @param boolean $is_default set to TRUE if this is the default site
+     * @param string  $site       site
+     * @parma boolean $is_default default web site flag 
      *
      * @return view
      */
 
-    function _item($site, $form_type, $is_default = FALSE)
+    function _item($form_type, $site)
     {
         // Load libraries
         //---------------
 
         $this->lang->load('web_server');
         $this->load->library('web_server/Httpd');
+        $this->load->library('flexshare/Flexshare');
         $this->load->factory('groups/Group_Manager_Factory');
 
         // Set validation rules
         //---------------------
 
         $check_exists = ($form_type === 'add') ? TRUE : FALSE;
+        $is_adding_default = ($site === 'default') ? TRUE : FALSE;
 
         $group = ($this->input->post('group')) ? $this->input->post('group') : '';
         $ftp_state = ($this->input->post('ftp')) ? $this->input->post('ftp') : FALSE;
         $file_state = ($this->input->post('file')) ? $this->input->post('file') : FALSE;
+        $is_default = ($this->input->post('is_default')) ? $this->input->post('is_default') : $is_adding_default;
 
         $this->form_validation->set_policy('site', 'web_server/Httpd', 'validate_site', TRUE, $check_exists);
         $this->form_validation->set_policy('aliases', 'web_server/Httpd', 'validate_aliases');
-        $this->form_validation->set_policy('ftp', 'web_server/Httpd', 'validate_ftp_state');
-        $this->form_validation->set_policy('file', 'web_server/Httpd', 'validate_file_state');
-        $this->form_validation->set_policy('group', 'web_server/Httpd', 'validate_group');
+        $this->form_validation->set_policy('ftp', 'web_server/Httpd', 'validate_ftp_state', TRUE);
+        $this->form_validation->set_policy('file', 'web_server/Httpd', 'validate_file_state', TRUE);
+        $this->form_validation->set_policy('group', 'web_server/Httpd', 'validate_group', TRUE);
+
+        $this->form_validation->set_policy('web_access', 'flexshare/Flexshare', 'validate_web_access', TRUE);
+        $this->form_validation->set_policy('require_authentication', 'flexshare/Flexshare', 'validate_web_require_authentication', TRUE);
+        $this->form_validation->set_policy('require_ssl', 'flexshare/Flexshare', 'validate_web_require_ssl', TRUE);
+        $this->form_validation->set_policy('show_index', 'flexshare/Flexshare', 'validate_web_show_index', TRUE);
+        $this->form_validation->set_policy('follow_symlinks', 'flexshare/Flexshare', 'validate_web_follow_symlinks', TRUE);
+        $this->form_validation->set_policy('ssi', 'flexshare/Flexshare', 'validate_web_allow_ssi', TRUE);
+        $this->form_validation->set_policy('htaccess', 'flexshare/Flexshare', 'validate_web_htaccess_override', TRUE);
+        $this->form_validation->set_policy('php', 'flexshare/Flexshare', 'validate_web_php', TRUE);
+        $this->form_validation->set_policy('cgi', 'flexshare/Flexshare', 'validate_web_cgi', TRUE);
 
         $form_ok = $this->form_validation->run();
 
@@ -233,15 +229,28 @@ class Sites extends ClearOS_Controller
         //-------------------
 
         if ($this->input->post('submit') && ($form_ok === TRUE)) {
+            $type = ($is_default) ? Httpd::TYPE_WEB_SITE_DEFAULT : Httpd::TYPE_WEB_SITE;
+
+            $options['web_access'] = $this->input->post('web_access');
+            $options['require_authentication'] = $this->input->post('require_authentication');
+            $options['require_ssl'] = $this->input->post('require_ssl');
+            $options['show_index'] = $this->input->post('show_index');
+            $options['follow_symlinks'] = $this->input->post('follow_symlinks');
+            $options['ssi'] = $this->input->post('ssi');
+            $options['htaccess'] = $this->input->post('htaccess');
+            $options['php'] = $this->input->post('php');
+            $options['cgi'] = $this->input->post('cgi');
+
             try {
-                if (($form_type === 'edit') || ($form_type === 'edit_default')) {
+                if ($form_type === 'edit') {
                     $this->httpd->set_site(
                         $this->input->post('site'),
                         $this->input->post('aliases'),
                         $group,
                         $ftp_state,
                         $file_state,
-                        $is_default
+                        $type,
+                        $options
                     );
 
                     $this->page->set_status_updated();
@@ -252,7 +261,8 @@ class Sites extends ClearOS_Controller
                         $group,
                         $ftp_state,
                         $file_state,
-                        $is_default
+                        $type,
+                        $options
                     );
 
                     $this->page->set_status_added();
@@ -270,29 +280,51 @@ class Sites extends ClearOS_Controller
 
         try {
             $data['form_type'] = $form_type;
-            $data['default_set'] = $this->httpd->is_default_set();
-
             $data['ftp_available'] = clearos_app_installed('ftp');
             $data['file_available'] = clearos_app_installed('samba');
+            $data['accessibility_options'] = $this->flexshare->get_web_access_options();
 
-            if (($form_type === 'edit') || ($form_type === 'edit_default'))
-                $info = $this->httpd->get_site_info($site);
+            $data['site'] = $site;
 
-            $data['site'] = empty($info['server_name']) ? '' :  $info['server_name'];
-            $data['aliases'] = empty($info['aliases']) ? '' :  $info['aliases'];
-            $data['ftp'] = empty($info['ftp']) ? TRUE :  $info['ftp'];
-            $data['file'] = empty($info['file']) ? TRUE :  $info['file'];
-            $data['group'] = empty($info['group']) ? '' :  $info['group'];
+            if ($form_type === 'add') {
+                $data['is_default'] = ($is_default) ? TRUE : FALSE;
+            } else {
+                $data['info'] = $this->httpd->get_site($site);
+                $data['is_default'] = $this->httpd->is_default($site) ? TRUE : FALSE;
+            }
 
             $groups = $this->group_manager->get_details();
 
             foreach ($groups as $group => $details)
                 $data['groups'][$group] = $group . ' - ' . $details['core']['description'];
-
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;
         }
+
+        // Defaults
+        $data['info']['WebEnabled'] = TRUE;
+
+        if (! isset($data['info']['WebAccess']))
+            $data['info']['WebAccess'] = Flexshare::ACCESS_ALL;
+
+        if (! isset($data['info']['WebHtaccessOverride']))
+            $data['info']['WebHtaccessOverride'] = TRUE;
+
+        if (! isset($data['info']['WebReqSsl']))
+            $data['info']['WebReqSsl'] = TRUE;
+
+        if (! isset($data['info']['WebReqAuth']))
+            $data['info']['WebReqAuth'] = FALSE;
+
+        if (! isset($data['info']['WebShowIndex']))
+            $data['info']['WebShowIndex'] = TRUE;
+
+        if (! isset($data['info']['WebPhp']))
+            $data['info']['WebPhp'] = TRUE;
+
+        if (! isset($data['info']['WebCgi']))
+            $data['info']['WebCgi'] = FALSE;
 
         // Load the views
         //---------------

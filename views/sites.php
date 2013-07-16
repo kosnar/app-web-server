@@ -51,10 +51,10 @@ $headers = array(
 // Anchors
 ///////////////////////////////////////////////////////////////////////////////
 
-if (empty($sites['default']))
-    $anchors = array(anchor_custom('/app/web_server/sites/add_default/', lang('web_server_configure_default_web_site')));
-else
+if ($default_set)
     $anchors = array(anchor_add('/app/web_server/sites/add/'));
+else
+    $anchors = array(anchor_custom('/app/web_server/sites/add/default', lang('web_server_configure_default_web_site')));
 
 ///////////////////////////////////////////////////////////////////////////////
 // Items
@@ -66,10 +66,10 @@ foreach ($sites as $site => $info) {
     // Tweak buttons for default site
     ///////////////////////////////////////////////////////////////////////////
 
-    if ($site === 'default') {
+    if ($info['WebDefaultSite']) {
         $detail_buttons = button_set(
             array(
-                anchor_edit('/app/web_server/sites/edit_default', 'high'),
+                anchor_edit('/app/web_server/sites/edit/' . $site, 'high'),
             )
         );
     } else {
@@ -86,16 +86,17 @@ foreach ($sites as $site => $info) {
     ///////////////////////////////////////////////////////////////////////////
 
     // Add a default string
-    $web_site = $info['server_name'];
-    if ($site == 'default')
+    $web_site = $info['Name'];
+
+    if ($info['WebDefaultSite'])
         $web_site .= ' - ' . lang('base_default');
 
     $access = '';
 
-    if ($info['ftp'])
+    if ($info['FtpEnabled'])
         $access .= "<img src='" . clearos_app_htdocs('web_server') . "/icon_ftp.png' alt='FTP'>";
 
-    if ($info['file'])
+    if ($info['FileEnabled'])
         $access .= "<img src='" . clearos_app_htdocs('web_server') . "/icon_samba.png' alt='" . lang('base_file') . "'>";
 
     $item['title'] = $site;
@@ -104,7 +105,7 @@ foreach ($sites as $site => $info) {
     $item['details'] = array(
         $web_site,
         $access,
-        $info['group'],
+        $info['ShareGroup'],
     );
 
     $items[] = $item;

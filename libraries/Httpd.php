@@ -270,6 +270,8 @@ class Httpd extends Daemon
     /**
      * Check to see if site is default.
      *
+     * @param string $site site
+     *
      * @return boolean TRUE if default web site
      * @throws Engine_Exception
      */
@@ -525,7 +527,10 @@ class Httpd extends Daemon
 
         $flexshare = new Flexshare();
 
-        $comment = lang('web_server_web_site') . ' - ' . $site;
+        if (isset($options['comment']))
+            $comment = $options['comment'];
+        else
+            $comment = lang('web_server_web_site') . ' - ' . $site;
 
         // FTP
         $flexshare->set_ftp_allow_passive($site, 1, Flexshare::FTP_PASV_MIN, Flexshare::FTP_PASV_MAX);
@@ -541,18 +546,52 @@ class Httpd extends Daemon
         $flexshare->set_file_enabled($site, $samba);
 
         // Web and Options
-        $flexshare->set_web_server_name($site, $site);
         $flexshare->set_web_server_alias($site, $aliases);
         $flexshare->set_web_realm($site, $comment);
-        $flexshare->set_web_access($site, $options['web_access']);
-        $flexshare->set_web_require_authentication($site, $options['require_authentication']);
-        $flexshare->set_web_require_ssl($site, $options['require_ssl']);
-        $flexshare->set_web_show_index($site, $options['show_index']);
-        $flexshare->set_web_follow_symlinks($site, $options['follow_symlinks']);
-        $flexshare->set_web_allow_ssi($site, $options['ssi']);
-        $flexshare->set_web_htaccess_override($site, $options['htaccess']);
-        $flexshare->set_web_php($site, $options['php']);
-        $flexshare->set_web_cgi($site, $options['cgi']);
+
+        if (isset($options['server_name']))
+            $flexshare->set_web_server_name($site, $options['server_name']);
+
+        if (isset($options['server_name_alternate']))
+            $flexshare->set_web_server_name_alternate($site, $options['server_name_alternate']);
+
+        if (isset($options['server_alias_alternate']))
+            $flexshare->set_web_server_alias_alternate($site, $options['server_alias_alternate']);
+
+        if (isset($options['directory_alias']))
+            $flexshare->set_web_directory_alias($site, $options['directory_alias']);
+
+        if (isset($options['directory_alias_alternate']))
+            $flexshare->set_web_directory_alias_alternate($site, $options['directory_alias_alternate']);
+
+        if (isset($options['web_access']))
+            $flexshare->set_web_access($site, $options['web_access']);
+
+        if (isset($options['require_authentication']))
+            $flexshare->set_web_require_authentication($site, $options['require_authentication']);
+
+        if (isset($options['require_ssl']))
+            $flexshare->set_web_require_ssl($site, $options['require_ssl']);
+
+        if (isset($options['show_index']))
+            $flexshare->set_web_show_index($site, $options['show_index']);
+
+        if (isset($options['follow_symlinks']))
+            $flexshare->set_web_follow_symlinks($site, $options['follow_symlinks']);
+
+        if (isset($options['ssi']))
+            $flexshare->set_web_allow_ssi($site, $options['ssi']);
+
+        if (isset($options['htaccess']))
+            $flexshare->set_web_htaccess_override($site, $options['htaccess']);
+
+        if (isset($options['php']))
+            $flexshare->set_web_php($site, $options['php']);
+
+        if (isset($options['cgi']))
+            $flexshare->set_web_cgi($site, $options['cgi']);
+
+        $flexshare->set_web_enabled($site, TRUE);
 
         // Globals
         $flexshare->set_group($site, $group);

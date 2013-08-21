@@ -140,7 +140,6 @@ class Apps extends ClearOS_Controller
 
         $this->form_validation->set_policy('web_access', 'flexshare/Flexshare', 'validate_web_access', TRUE);
         $this->form_validation->set_policy('require_authentication', 'flexshare/Flexshare', 'validate_web_require_authentication', TRUE);
-        $this->form_validation->set_policy('require_ssl', 'flexshare/Flexshare', 'validate_web_require_ssl', TRUE);
         $this->form_validation->set_policy('show_index', 'flexshare/Flexshare', 'validate_web_show_index', TRUE);
         $this->form_validation->set_policy('follow_symlinks', 'flexshare/Flexshare', 'validate_web_follow_symlinks', TRUE);
         $this->form_validation->set_policy('ssi', 'flexshare/Flexshare', 'validate_web_allow_ssi', TRUE);
@@ -163,7 +162,7 @@ class Apps extends ClearOS_Controller
 
             $options['web_access'] = $this->input->post('web_access');
             $options['require_authentication'] = $this->input->post('require_authentication');
-            $options['require_ssl'] = $this->input->post('require_ssl');
+            $options['require_ssl'] = FALSE;
             $options['show_index'] = $this->input->post('show_index');
             $options['follow_symlinks'] = $this->input->post('follow_symlinks');
             $options['ssi'] = $this->input->post('ssi');

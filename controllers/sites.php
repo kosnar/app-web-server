@@ -205,13 +205,17 @@ class Sites extends ClearOS_Controller
 
         $this->form_validation->set_policy('site', 'web_server/Httpd', 'validate_site', TRUE, $check_exists);
         $this->form_validation->set_policy('aliases', 'web_server/Httpd', 'validate_aliases');
-        $this->form_validation->set_policy('ftp', 'web_server/Httpd', 'validate_ftp_state', TRUE);
-        $this->form_validation->set_policy('file', 'web_server/Httpd', 'validate_file_state', TRUE);
+
+	if (clearos_app_installed('ftp'))
+		$this->form_validation->set_policy('ftp', 'web_server/Httpd', 'validate_ftp_state', TRUE);
+
+	if (clearos_app_installed('samba'))
+		$this->form_validation->set_policy('file', 'web_server/Httpd', 'validate_file_state', TRUE);
+
         $this->form_validation->set_policy('group', 'web_server/Httpd', 'validate_group', TRUE);
 
         $this->form_validation->set_policy('web_access', 'flexshare/Flexshare', 'validate_web_access', TRUE);
         $this->form_validation->set_policy('require_authentication', 'flexshare/Flexshare', 'validate_web_require_authentication', TRUE);
-        $this->form_validation->set_policy('require_ssl', 'flexshare/Flexshare', 'validate_web_require_ssl', TRUE);
         $this->form_validation->set_policy('show_index', 'flexshare/Flexshare', 'validate_web_show_index', TRUE);
         $this->form_validation->set_policy('follow_symlinks', 'flexshare/Flexshare', 'validate_web_follow_symlinks', TRUE);
         $this->form_validation->set_policy('ssi', 'flexshare/Flexshare', 'validate_web_allow_ssi', TRUE);
@@ -229,13 +233,13 @@ class Sites extends ClearOS_Controller
 
             $options['web_access'] = $this->input->post('web_access');
             $options['require_authentication'] = $this->input->post('require_authentication');
-            $options['require_ssl'] = $this->input->post('require_ssl');
             $options['show_index'] = $this->input->post('show_index');
             $options['follow_symlinks'] = $this->input->post('follow_symlinks');
             $options['ssi'] = $this->input->post('ssi');
             $options['htaccess'] = $this->input->post('htaccess');
             $options['php'] = $this->input->post('php');
             $options['cgi'] = $this->input->post('cgi');
+            $options['require_ssl'] = FALSE; // Hard code this for now
 
             try {
                 if ($form_type === 'edit') {
@@ -308,7 +312,7 @@ class Sites extends ClearOS_Controller
             $data['info']['WebHtaccessOverride'] = TRUE;
 
         if (! isset($data['info']['WebReqSsl']))
-            $data['info']['WebReqSsl'] = TRUE;
+            $data['info']['WebReqSsl'] = FALSE;
 
         if (! isset($data['info']['WebReqAuth']))
             $data['info']['WebReqAuth'] = FALSE;

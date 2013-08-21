@@ -100,7 +100,6 @@ echo fieldset_footer();
 echo fieldset_header(lang('flexshare_options'));
 echo field_dropdown('web_access', $accessibility_options, $info['WebAccess'], lang('flexshare_web_accessibility'), $read_only);
 echo field_toggle_enable_disable('require_authentication', $info['WebReqAuth'], lang('flexshare_web_require_authentication'), $read_only);
-echo field_toggle_enable_disable('require_ssl', $info['WebReqSsl'], lang('flexshare_web_require_ssl'), $read_only);
 echo field_toggle_enable_disable('show_index', $info['WebShowIndex'], lang('flexshare_web_show_index'), $read_only);
 echo field_toggle_enable_disable('follow_symlinks', $info['WebFollowSymLinks'], lang('flexshare_web_follow_symlinks'), $read_only);
 echo field_toggle_enable_disable('ssi', $info['WebAllowSSI'], lang('flexshare_web_allow_ssi'), $read_only);

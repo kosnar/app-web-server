@@ -599,6 +599,7 @@ class Httpd extends Daemon
         // Globals
         $flexshare->set_group($site, $group);
         $flexshare->set_share_state($site, TRUE);
+        $flexshare->update_share($site, TRUE);
     }
 }
 

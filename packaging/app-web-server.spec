@@ -1,7 +1,7 @@
 
 Name: app-web-server
 Epoch: 1
-Version: 1.5.0
+Version: 1.5.10
 Release: 1%{dist}
 Summary: Web Server
 License: GPLv3
@@ -24,7 +24,7 @@ License: LGPLv3
 Group: ClearOS/Libraries
 Requires: app-base-core
 Requires: app-network-core
-Requires: app-flexshare-core
+Requires: app-flexshare-core >= 1:1.5.10
 Requires: app-php-core >= 1:1.4.40
 Requires: httpd >= 2.2.15
 Requires: mod_authnz_external

@@ -206,11 +206,11 @@ class Sites extends ClearOS_Controller
         $this->form_validation->set_policy('site', 'web_server/Httpd', 'validate_site', TRUE, $check_exists);
         $this->form_validation->set_policy('aliases', 'web_server/Httpd', 'validate_aliases');
 
-	if (clearos_app_installed('ftp'))
-		$this->form_validation->set_policy('ftp', 'web_server/Httpd', 'validate_ftp_state', TRUE);
+        if (clearos_app_installed('ftp'))
+            $this->form_validation->set_policy('ftp', 'web_server/Httpd', 'validate_ftp_state', TRUE);
 
-	if (clearos_app_installed('samba'))
-		$this->form_validation->set_policy('file', 'web_server/Httpd', 'validate_file_state', TRUE);
+        if (clearos_app_installed('samba'))
+            $this->form_validation->set_policy('file', 'web_server/Httpd', 'validate_file_state', TRUE);
 
         $this->form_validation->set_policy('group', 'web_server/Httpd', 'validate_group', TRUE);
 

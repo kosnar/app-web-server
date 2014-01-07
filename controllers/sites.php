@@ -141,6 +141,19 @@ class Sites extends ClearOS_Controller
     }
 
     /**
+     * Custom edit view.
+     *
+     * @param string $site site
+     *
+     * @return view
+     */
+
+    function edit_custom($site)
+    {
+        $this->_custom_item('edit', $site);
+    }
+
+    /**
      * Destroys site.
      *
      * @param string $site site
@@ -169,9 +182,117 @@ class Sites extends ClearOS_Controller
         }
     }
 
+    /**
+     * Upgrade view.
+     *
+     * @param string $site site
+     *
+     * @return view
+     */
+
+    function upgrade($site)
+    {
+        $this->_item('upgrade', $site);
+    }
+
     ///////////////////////////////////////////////////////////////////////////////
     // P R I V A T E
     ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Custom configuration form.
+     *
+     * @param string $form_type form type
+     * @param string $site      site
+     *
+     * @return view
+     */
+
+    function _custom_item($form_type, $site)
+    {
+        // Load libraries
+        //---------------
+
+        $this->lang->load('web_server');
+        $this->load->library('web_server/Httpd');
+        $this->load->library('flexshare/Flexshare');
+        $this->load->factory('groups/Group_Manager_Factory');
+
+        // Set validation rules
+        //---------------------
+
+        $check_exists = ($form_type === 'add') ? TRUE : FALSE;
+        $is_adding_default = ($site === 'default') ? TRUE : FALSE;
+
+        $group = ($this->input->post('group')) ? $this->input->post('group') : '';
+        $ftp_state = ($this->input->post('ftp')) ? $this->input->post('ftp') : FALSE;
+        $file_state = ($this->input->post('file')) ? $this->input->post('file') : FALSE;
+        $is_default = ($this->input->post('is_default')) ? $this->input->post('is_default') : $is_adding_default;
+
+        $this->form_validation->set_policy('site', 'web_server/Httpd', 'validate_site', TRUE);
+
+        if (clearos_app_installed('ftp'))
+            $this->form_validation->set_policy('ftp', 'web_server/Httpd', 'validate_ftp_state', TRUE);
+
+        if (clearos_app_installed('samba'))
+            $this->form_validation->set_policy('file', 'web_server/Httpd', 'validate_file_state', TRUE);
+
+        $this->form_validation->set_policy('group', 'web_server/Httpd', 'validate_group', TRUE);
+
+        $form_ok = $this->form_validation->run();
+
+        // Handle form submit
+        //-------------------
+
+        if ($this->input->post('submit') && ($form_ok === TRUE)) {
+            $type = ($is_default) ? Httpd::TYPE_WEB_SITE_DEFAULT : Httpd::TYPE_WEB_SITE;
+
+            try {
+                $this->httpd->set_site(
+                    $this->input->post('site'),
+                    $this->input->post('aliases'),
+                    $group,
+                    $ftp_state,
+                    $file_state,
+                    $type
+                );
+
+                $this->page->set_status_updated();
+
+                redirect('/web_server/sites');
+            } catch (Exception $e) {
+                $this->page->view_exception($e);
+                return;
+            }
+        }
+
+        // Load the view data 
+        //------------------- 
+
+        try {
+            $data['form_type'] = $form_type;
+            $data['ftp_available'] = clearos_app_installed('ftp');
+            $data['file_available'] = clearos_app_installed('samba');
+
+            $data['site'] = $site;
+
+            $data['info'] = $this->httpd->get_site($site);
+            $data['is_default'] = $this->httpd->is_default($site) ? TRUE : FALSE;
+
+            $groups = $this->group_manager->get_details();
+
+            foreach ($groups as $group => $details)
+                $data['groups'][$group] = $group . ' - ' . $details['core']['description'];
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+
+        // Load the views
+        //---------------
+
+        $this->page->view_form('web_server/custom_site', $data, lang('web_server_web_site'));
+    }
 
     /**
      * Common form.
@@ -240,9 +361,13 @@ class Sites extends ClearOS_Controller
             $options['php'] = $this->input->post('php');
             $options['cgi'] = $this->input->post('cgi');
             $options['require_ssl'] = FALSE; // Hard code this for now
+            $options['custom_configuration'] = FALSE;
 
             try {
-                if ($form_type === 'edit') {
+                if (($form_type === 'edit') || ($form_type === 'upgrade')) {
+                    if ($form_type === 'upgrade')
+                        $this->flexshare->upgrade_web_site($this->input->post('site'));
+
                     $this->httpd->set_site(
                         $this->input->post('site'),
                         $this->input->post('aliases'),

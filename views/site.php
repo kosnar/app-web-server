@@ -50,6 +50,14 @@ if ($form_type === 'edit') {
         form_submit_update('submit'),
         anchor_cancel('/app/web_server/sites')
     );
+} else if ($form_type === 'upgrade') {
+    $read_only = FALSE;
+    $site_read_only = TRUE;
+    $form = 'web_server/sites/upgrade/' . $site;
+    $buttons = array( 
+        form_submit_update('submit'),
+        anchor_cancel('/app/web_server/sites')
+    );
 } else if ($form_type === 'add') {
     $read_only = FALSE;
     $site_read_only = FALSE;

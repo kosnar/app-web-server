@@ -24,7 +24,7 @@ License: LGPLv3
 Group: ClearOS/Libraries
 Requires: app-base-core
 Requires: app-network-core
-Requires: app-flexshare-core >= 1:1.5.10
+Requires: app-flexshare-core >= 1:1.5.22
 Requires: app-php-core >= 1:1.4.40
 Requires: httpd >= 2.2.15
 Requires: mod_authnz_external
@@ -86,7 +86,6 @@ exit 0
 %files core
 %defattr(-,root,root)
 %exclude /usr/clearos/apps/web_server/packaging
-%exclude /usr/clearos/apps/web_server/tests
 %dir /usr/clearos/apps/web_server
 %dir /var/clearos/httpd
 /usr/clearos/apps/web_server/deploy

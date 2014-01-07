@@ -66,16 +66,18 @@ foreach ($sites as $site => $info) {
     // Tweak buttons for default site
     ///////////////////////////////////////////////////////////////////////////
 
+    $edit_link = $info['WebCustomConfiguration'] ? 'edit_custom' : 'edit';
+
     if ($info['WebDefaultSite']) {
         $detail_buttons = button_set(
             array(
-                anchor_edit('/app/web_server/sites/edit/' . $site, 'high'),
+                anchor_edit('/app/web_server/sites/' . $edit_link . '/' . $site, 'high'),
             )
         );
     } else {
         $detail_buttons = button_set(
             array(
-                anchor_edit('/app/web_server/sites/edit/' . $site, 'high'),
+                anchor_edit('/app/web_server/sites/' . $edit_link . '/' . $site, 'high'),
                 anchor_delete('/app/web_server/sites/delete/' . $site, 'high')
             )
         );

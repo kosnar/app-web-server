@@ -42,7 +42,7 @@ $app['requires'] = array(
 
 $app['core_requires'] = array(
     'app-network-core',
-    'app-flexshare-core >= 1:1.5.10',
+    'app-flexshare-core >= 1:1.5.22',
     'app-php-core >= 1:1.4.40',
     'httpd >= 2.2.15',
     'mod_authnz_external',

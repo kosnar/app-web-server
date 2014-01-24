@@ -1,0 +1,15 @@
+#!/bin/sh
+
+DIR="/var/www/virtual"
+
+CHECKPERMS=`stat --format=%a $DIR`
+if [ "$CHECKPERMS" != "755" ]; then
+    logger -p local6.notice -t installer "app-web-server-core - updating folder permissions for $DIR"
+    chmod 755 $DIR
+fi
+
+CHECKOWNERSHIP=`stat --format=%U.%G $DIR`
+if [ "$CHECKOWNERSHIP" != "root.root" ]; then
+    logger -p local6.notice -t installer "app-web-server-core - updating folder ownership for $DIR"
+    chown root.root $DIR
+fi

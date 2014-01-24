@@ -1,7 +1,7 @@
 
 Name: app-web-server
 Epoch: 1
-Version: 1.5.22
+Version: 1.5.23
 Release: 1%{dist}
 Summary: Web Server
 License: GPLv3
@@ -47,6 +47,7 @@ mkdir -p -m 755 %{buildroot}/usr/clearos/apps/web_server
 cp -r * %{buildroot}/usr/clearos/apps/web_server/
 
 install -d -m 0755 %{buildroot}/var/clearos/httpd
+install -d -m 0755 %{buildroot}/var/www/virtual
 install -D -m 0644 packaging/filewatch-web-server-configuration.conf %{buildroot}/etc/clearsync.d/filewatch-web-server-configuration.conf
 install -D -m 0644 packaging/httpd.php %{buildroot}/var/clearos/base/daemon/httpd.php
 
@@ -88,6 +89,7 @@ exit 0
 %exclude /usr/clearos/apps/web_server/packaging
 %dir /usr/clearos/apps/web_server
 %dir /var/clearos/httpd
+%dir /var/www/virtual
 /usr/clearos/apps/web_server/deploy
 /usr/clearos/apps/web_server/language
 /usr/clearos/apps/web_server/libraries

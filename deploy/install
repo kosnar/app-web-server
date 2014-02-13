@@ -61,7 +61,11 @@ fi
 
 /usr/clearos/apps/web_server/deploy/initialize
 
-# Reload clearsyncd
-#------------------
+# Set default start/boot
+#-----------------------
 
-/sbin/service clearsyncd condrestart >/dev/null 2>&1
+logger -p local6.notice -t installer "app-web-server-core - enabling web server"
+chkconfig httpd on
+
+logger -p local6.notice -t installer "app-web-server-core - starting web server"
+service httpd start

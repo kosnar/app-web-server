@@ -1,13 +1,13 @@
 <?php
 
 /**
- * Web server controller.
+ * Web server webapps controller.
  *
  * @category   apps
  * @package    web-server
  * @subpackage controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2012 ClearFoundation
+ * @copyright  2014 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/web_server/
  */
@@ -30,51 +30,61 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+use \Exception as Exception;
+
+use \clearos\apps\web_server\Httpd as Httpd;
+
+///////////////////////////////////////////////////////////////////////////////
 // C L A S S
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * Web server controller.
+ * Web server webapps controller.
  *
  * @category   apps
  * @package    web-server
  * @subpackage controllers
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2012 ClearFoundation
+ * @copyright  2014 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/web_server/
  */
 
-class Web_Server extends ClearOS_Controller
+class Webapps extends ClearOS_Controller
 {
     /**
-     * Web server summary view.
+     * Sites summary view.
      *
      * @return view
      */
 
     function index()
     {
-        // Show account status widget if we're not in a happy state
-        //---------------------------------------------------------
-
-        $this->load->module('accounts/status');
-
-        if ($this->status->unhappy()) {
-            $this->status->widget('web_server');
-            return;
-        }
-
         // Load libraries
         //---------------
 
         $this->lang->load('web_server');
+        $this->load->library('web_server/Httpd');
 
+        // Load view data
+        //---------------
+
+        try {
+            $data['webapps'] = $this->httpd->get_sites(Httpd::TYPE_WEB_APP);
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+            return;
+        }
+ 
         // Load views
         //-----------
 
-        $views = array('web_server/server', 'web_server/settings', 'web_server/sites', 'web_server/webapps');
+        if (empty($data['webapps']))
+            return;
 
-        $this->page->view_forms($views, lang('web_server_app_name'));
+        $this->page->view_form('web_server/webapps', $data, lang('web_server_webapps'));
     }
 }

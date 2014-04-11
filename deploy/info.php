@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'web_server';
-$app['version'] = '1.5.24';
+$app['version'] = '1.5.25';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -48,6 +48,7 @@ $app['core_requires'] = array(
     'mod_authnz_external',
     'mod_authz_unixgroup',
     'mod_ssl',
+    'openssl >= 1.0.1e-16.el6_5.7',
     'pwauth',
     'syswatch >= 6.2.3',
 );

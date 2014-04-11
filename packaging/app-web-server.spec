@@ -1,7 +1,7 @@
 
 Name: app-web-server
 Epoch: 1
-Version: 1.5.24
+Version: 1.5.25
 Release: 1%{dist}
 Summary: Web Server
 License: GPLv3
@@ -30,6 +30,7 @@ Requires: httpd >= 2.2.15
 Requires: mod_authnz_external
 Requires: mod_authz_unixgroup
 Requires: mod_ssl
+Requires: openssl >= 1.0.1e-16.el6_5.7
 Requires: pwauth
 Requires: syswatch >= 6.2.3
 

@@ -1,7 +1,7 @@
 
 Name: app-web-server
 Epoch: 1
-Version: 1.5.25
+Version: 1.6.0
 Release: 1%{dist}
 Summary: Web Server
 License: GPLv3

@@ -73,8 +73,7 @@ class Web_Server extends ClearOS_Controller
         // Load views
         //-----------
 
-        // $views = array('web_server/server', 'web_server/settings', 'web_server/sites', 'web_server/webapps');
-        $views = array('web_server/server', 'web_server/settings', 'web_server/sites');
+        $views = array('web_server/server', 'web_server/settings', 'web_server/sites', 'web_server/webapps');
 
         $this->page->view_forms($views, lang('web_server_app_name'));
     }

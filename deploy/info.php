@@ -49,6 +49,7 @@ $app['core_requires'] = array(
     'mod_authz_unixgroup',
     'mod_ssl',
     'openssl >= 1.0.1e-16.el6_5.7',
+    'perl-CGI',
     'pwauth',
     'syswatch >= 6.2.3',
 );

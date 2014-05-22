@@ -31,6 +31,7 @@ Requires: mod_authnz_external
 Requires: mod_authz_unixgroup
 Requires: mod_ssl
 Requires: openssl >= 1.0.1e-16.el6_5.7
+Requires: perl-CGI
 Requires: pwauth
 Requires: syswatch >= 6.2.3
 

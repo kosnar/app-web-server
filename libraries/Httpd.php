@@ -287,8 +287,17 @@ class Httpd extends Daemon
 
         $file = new File(self::FILE_CONFIG, TRUE);
 
-        $file->replace_lines_between('/^\s*Options\s+.*/i', '#   Options Indexes FollowSymLinks', '/^\s*<Directory\s+.\/var\/www\/html.>/i', '/^\s*<\/Directory>/');
-        $file->replace_lines_between('/^\s*AllowOverride\s+.*/i', '#   AllowOverride None', '/^\s*<Directory\s+.\/var\/www\/html.>/i', '/^\s*<\/Directory>/');
+        try {
+            $file->replace_lines_between('/^\s*Options\s+.*/i', '#   Options Indexes FollowSymLinks', '/^\s*<Directory\s+.\/var\/www\/html.>/i', '/^\s*<\/Directory>/');
+        } catch (File_No_Match_Exception $e) {
+            // Not fatal
+        }
+
+        try {
+            $file->replace_lines_between('/^\s*AllowOverride\s+.*/i', '#   AllowOverride None', '/^\s*<Directory\s+.\/var\/www\/html.>/i', '/^\s*<\/Directory>/');
+        } catch (File_No_Match_Exception $e) {
+            // Not fatal
+        }
     }
 
     /**
@@ -418,6 +427,33 @@ class Httpd extends Daemon
         }
 
         $this->_set_core_info($site, $aliases, $group, $ftp, $samba, $type, $options);
+    }
+
+    /**
+     * Upgrade routine.
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    function upgrade()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new File(self::FILE_CONFIG, TRUE);
+
+        // See tracker #1661 - only change on *exact match*
+        try {
+            $file->replace_lines_between('/^\s*Options Indexes FollowSymLinks$/', '#   Options Indexes FollowSymLinks', '/^\s*<Directory\s+.\/var\/www\/html.>/i', '/^\s*<\/Directory>/');
+        } catch (File_No_Match_Exception $e) {
+            // Not fatal
+        }
+
+        try {
+            $file->replace_lines_between('/^\s*AllowOverride None$/i', '#   AllowOverride None', '/^\s*<Directory\s+.\/var\/www\/html.>/i', '/^\s*<\/Directory>/');
+        } catch (File_No_Match_Exception $e) {
+            // Not fatal
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////

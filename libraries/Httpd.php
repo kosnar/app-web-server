@@ -7,7 +7,7 @@
  * @package    web-server
  * @subpackage libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2003-2013 ClearFoundation
+ * @copyright  2003-2014 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/httpd/
  */
@@ -60,12 +60,14 @@ use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\flexshare\Flexshare as Flexshare;
 use \clearos\apps\groups\Group_Factory as Group_Factory;
+use \clearos\apps\network\Hostname as Hostname;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
 clearos_load_library('flexshare/Flexshare');
 clearos_load_library('groups/Group_Factory');
+clearos_load_library('network/Hostname');
 
 // Exceptions
 //-----------
@@ -92,7 +94,7 @@ clearos_load_library('flexshare/Flexshare_Not_Found_Exception');
  * @package    web-server
  * @subpackage libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2003-2013 ClearFoundation
+ * @copyright  2003-2014 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/httpd/
  */
@@ -265,6 +267,28 @@ class Httpd extends Daemon
             $flexshare_type = Flexshare::TYPE_WEB_APP;
 
         return $flexshare->get_shares($type);
+    }
+
+    /**
+     * Initializes configuration install.
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    function initialize()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $hostname = new Hostname();
+        $default = $hostname->get();
+
+        $this->set_server_name($default);
+
+        $file = new File(self::FILE_CONFIG, TRUE);
+
+        $file->replace_lines_between('/^\s*Options\s+.*/i', '#   Options Indexes FollowSymLinks', '/^\s*<Directory\s+.\/var\/www\/html.>/i', '/^\s*<\/Directory>/');
+        $file->replace_lines_between('/^\s*AllowOverride\s+.*/i', '#   AllowOverride None', '/^\s*<Directory\s+.\/var\/www\/html.>/i', '/^\s*<\/Directory>/');
     }
 
     /**

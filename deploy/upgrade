@@ -16,6 +16,3 @@ fi
 
 # Upgrade via API
 /usr/clearos/apps/web_server/deploy/upgrade-api
-
-# This should have been done upstream for Heartbleed
-service httpd condrestart >/dev/null 2>&1

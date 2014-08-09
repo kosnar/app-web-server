@@ -2,7 +2,7 @@
 
 $lang['web_server_aliases'] = 'Aliases';
 $lang['web_server_aliases_invalid'] = 'Aliases field is invalid.';
-$lang['web_server_app_description'] = 'The Web Server app can be used to create simple standalone web sites or as part of a broader infrastructure to deploy web-based applications using technologies like PHP, MySQL, and Javascript.';
+$lang['web_server_app_description'] = 'The Web Server app can be used to create simple standalone web sites or as part of a broader infrastructure to deploy web-based applications using technologies like PHP, MySQL, and JavaScript.';
 $lang['web_server_app_name'] = 'Web Server';
 $lang['web_server_configure_default_web_site'] = 'Configure Default Web Site';
 $lang['web_server_custom_configuration'] = 'Custom Configuration';

@@ -36,6 +36,7 @@
 $this->lang->load('base');
 $this->lang->load('groups');
 $this->lang->load('flexshare');
+$this->lang->load('network');
 $this->lang->load('web_server');
 
 ///////////////////////////////////////////////////////////////////////////////

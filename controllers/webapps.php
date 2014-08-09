@@ -85,6 +85,6 @@ class Webapps extends ClearOS_Controller
         if (empty($data['webapps']))
             return;
 
-        $this->page->view_form('web_server/webapps', $data, lang('web_server_webapps'));
+        $this->page->view_form('web_server/webapps', $data, lang('web_server_web_applications'));
     }
 }

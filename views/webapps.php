@@ -86,7 +86,7 @@ foreach ($webapps as $site => $info) {
 $options['no_action'] = TRUE;
 
 echo summary_table(
-    lang('web_server_webapps'),
+    lang('web_server_web_applications'),
     $anchors,
     $headers,
     $items,

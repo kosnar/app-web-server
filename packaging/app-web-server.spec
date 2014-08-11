@@ -16,7 +16,7 @@ Requires: app-users
 Requires: app-network
 
 %description
-The Web Server app can be used to create simple standalone web sites or as part of a broader infrastructure to deploy web-based applications using technologies like PHP, MySQL, and Javascript.
+The Web Server app can be used to create simple standalone web sites or as part of a broader infrastructure to deploy web-based applications using technologies like PHP, MySQL, and JavaScript.
 
 %package core
 Summary: Web Server - Core
@@ -36,7 +36,7 @@ Requires: pwauth
 Requires: syswatch >= 6.2.3
 
 %description core
-The Web Server app can be used to create simple standalone web sites or as part of a broader infrastructure to deploy web-based applications using technologies like PHP, MySQL, and Javascript.
+The Web Server app can be used to create simple standalone web sites or as part of a broader infrastructure to deploy web-based applications using technologies like PHP, MySQL, and JavaScript.
 
 This package provides the core API and libraries.
 

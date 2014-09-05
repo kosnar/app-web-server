@@ -65,7 +65,7 @@ fi
 #-----------------------
 
 logger -p local6.notice -t installer "app-web-server-core - enabling web server"
-chkconfig httpd on
+chkconfig httpd on >/dev/null 2>&1
 
 logger -p local6.notice -t installer "app-web-server-core - starting web server"
-service httpd start
+service httpd start >/dev/null 2>&1

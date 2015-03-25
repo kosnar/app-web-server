@@ -33,9 +33,12 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
+use \clearos\apps\certificate_manager\CertManager;
+
 $this->lang->load('base');
 $this->lang->load('groups');
 $this->lang->load('flexshare');
+$this->lang->load('certificate-manager');
 $this->lang->load('web_server');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -89,6 +92,9 @@ echo form_header(lang('base_settings'));
 echo fieldset_header(lang('web_server_web_site'));
 echo field_input('site', $info['Name'], lang('web_server_web_site_hostname'), $site_read_only);
 echo field_input('aliases', $info['WebServerAlias'], lang('web_server_aliases'), $read_only);
+
+echo field_dropdown	('certificate', CertManager::getCertsNames(), $info['WebCertificate'], lang('certificate_manager_cert'), false);
+
 echo fieldset_footer();
 
 // Upload information 

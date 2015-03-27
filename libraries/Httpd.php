@@ -169,15 +169,6 @@ class Httpd extends Daemon
 
         $flexshare->add_share($site, $comment, $group, $docroot, Flexshare::TYPE_WEB_SITE);
 
-        // Tweak httpd.conf for virtual site support
-        //------------------------------------------
-
-        $config = new File(self::FILE_CONFIG);
-        $match = $config->replace_lines("/^[#\s]*NameVirtualHost.*\*/", "NameVirtualHost *:80\n");
-
-        if (! $match)
-            $config->add_lines("NameVirtualHost *:80\n");
-
         // Use set_site to do the rest
         //----------------------------
 

@@ -33,7 +33,7 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-use \clearos\apps\certificate_manager\CertManager;
+use \clearos\apps\certificate_manager\Cert_Manager;
 
 $this->lang->load('base');
 $this->lang->load('web_server');
@@ -65,7 +65,7 @@ echo form_header(lang('base_settings'));
 
 echo field_input('server_name', $server_name, lang('web_server_server_name'), $read_only);
 
-echo field_dropdown('certificate', CertManager::getCertsNames(), $certificate, lang('certificate_manager_cert'), $read_only);
+echo field_dropdown('certificate', Cert_Manager::get_certs_names(), $certificate, lang('certificate_manager_cert'), $read_only);
 
 echo field_button_set($buttons);
 

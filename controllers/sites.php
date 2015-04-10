@@ -37,7 +37,7 @@ use \Exception as Exception;
 
 use \clearos\apps\web_server\Httpd as Httpd;
 use \clearos\apps\flexshare\Flexshare as Flexshare;
-use \clearos\apps\certificate_manager\CertManager;
+use \clearos\apps\certificate_manager\Cert_Manager;
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -313,7 +313,7 @@ class Sites extends ClearOS_Controller
         $this->lang->load('web_server');
         $this->load->library('web_server/Httpd');
         $this->load->library('flexshare/Flexshare');
-        $this->load->library('certificate_manager/CertManager');
+        $this->load->library('certificate_manager/Cert_Manager');
         $this->load->factory('groups/Group_Manager_Factory');
 
         // Set validation rules
@@ -374,7 +374,7 @@ class Sites extends ClearOS_Controller
                     $this->httpd->set_site(
                         $this->input->post('site'),
                         $this->input->post('aliases'),
-                    	$this->input->post('certificate'),
+                        $this->input->post('certificate'),
                         $group,
                         $ftp_state,
                         $file_state,
@@ -387,7 +387,7 @@ class Sites extends ClearOS_Controller
                     $this->httpd->add_site(
                         $this->input->post('site'),
                         $this->input->post('aliases'),
-                    	$this->input->post('certificate'),
+                        $this->input->post('certificate'),
                         $group,
                         $ftp_state,
                         $file_state,

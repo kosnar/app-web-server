@@ -61,7 +61,7 @@ use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\flexshare\Flexshare as Flexshare;
 use \clearos\apps\groups\Group_Factory as Group_Factory;
 use \clearos\apps\network\Hostname as Hostname;
-use \clearos\apps\certificate_manager\CertManager;
+use \clearos\apps\certificate_manager\Cert_Manager;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
@@ -69,7 +69,7 @@ clearos_load_library('base/Folder');
 clearos_load_library('flexshare/Flexshare');
 clearos_load_library('groups/Group_Factory');
 clearos_load_library('network/Hostname');
-clearos_load_library('certificate_manager/CertManager');
+clearos_load_library('certificate_manager/Cert_Manager');
 
 // Exceptions
 //-----------
@@ -252,7 +252,7 @@ class Httpd extends Daemon
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
         if(preg_match("%/([^/]+)\.crt$%", $retval, $match)) {
-        	return $match[1];
+            return $match[1];
         }
         return "";
     }
@@ -437,15 +437,15 @@ class Httpd extends Daemon
         // Update tag if it exists
         //------------------------
 
-        $cert_files = CertManager::getCert($cert);
+        $cert_files = Cert_Manager::get_cert($cert);
 
         $file = new File(self::FILE_SSL_CONFIG);
 
-        $match = $file->replace_lines("/^[ \t]*SSLCertificateFile[ \t].*$/", "SSLCertificateFile ".CertManager::CERT_PLACE."/$cert.".CertManager::CERT_CRT."\n");
+        $match = $file->replace_lines("/^[ \t]*SSLCertificateFile[ \t].*$/", "SSLCertificateFile ".Cert_Manager::CERT_PLACE."/$cert.".Cert_Manager::CERT_CRT."\n");
 
-        $match = $file->replace_lines("/^[ \t]*SSLCertificateKeyFile[ \t].*$/", "SSLCertificateKeyFile ".CertManager::CERT_PLACE."/$cert.".CertManager::CERT_KEY."\n");
+        $match = $file->replace_lines("/^[ \t]*SSLCertificateKeyFile[ \t].*$/", "SSLCertificateKeyFile ".Cert_Manager::CERT_PLACE."/$cert.".Cert_Manager::CERT_KEY."\n");
 
-        $match = $file->replace_lines("/^#*[ \t]*SSLCACertificateFile[ \t].*$/", ($cert_files[CertManager::CERT_CA] ? "" : "#")."SSLCACertificateFile ".CertManager::CERT_PLACE."/$cert.".CertManager::CERT_CA."\n");
+        $match = $file->replace_lines("/^#*[ \t]*SSLCACertificateFile[ \t].*$/", ($cert_files[Cert_Manager::CERT_CA] ? "" : "#")."SSLCACertificateFile ".Cert_Manager::CERT_PLACE."/$cert.".Cert_Manager::CERT_CA."\n");
     }
 
     /**

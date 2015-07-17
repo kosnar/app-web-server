@@ -44,9 +44,9 @@ fi
 #--------------------------------
 
 # TODO: update logos in clearos-logos so that the "ring theme" image does not have to be used here
-if ( [ ! -f /var/www/html/logo.png ] && [ -f /usr/share/plymouth/themes/rings/header-image.png ] ); then
+if [ ! -f /var/www/html/logo.png ] ; then
     logger -p local6.notice -t installer "app-web-server-core - adding default logo"
-    cp /usr/share/plymouth/themes/rings/header-image.png /var/www/html/logo.png
+    cp /usr/clearos/apps/web_server/deploy/logo.png /var/www/html/logo.png
     chmod 664 /var/www/html/logo.png
 fi
 

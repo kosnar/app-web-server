@@ -63,3 +63,11 @@ $app['core_file_manifest'] = array(
     'httpd.php'=> array('target' => '/var/clearos/base/daemon/httpd.php'),
     'filewatch-web-server-configuration.conf'=> array('target' => '/etc/clearsync.d/filewatch-web-server-configuration.conf'),
 );
+
+$app['delete_dependency'] = array(
+    'app-web-server-core',
+    'httpd',
+    'mod_authnz_external',
+    'mod_authz_unixgroup',
+    'mod_ssl',
+);

@@ -61,6 +61,7 @@ use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\flexshare\Flexshare as Flexshare;
 use \clearos\apps\groups\Group_Factory as Group_Factory;
 use \clearos\apps\network\Hostname as Hostname;
+use \clearos\apps\certificate_manager\Cert_Manager;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
@@ -68,6 +69,7 @@ clearos_load_library('base/Folder');
 clearos_load_library('flexshare/Flexshare');
 clearos_load_library('groups/Group_Factory');
 clearos_load_library('network/Hostname');
+clearos_load_library('certificate_manager/Cert_Manager');
 
 // Exceptions
 //-----------
@@ -109,6 +111,7 @@ class Httpd extends Daemon
     const PATH_DEFAULT = '/var/www/html';
     const PATH_VIRTUAL = '/var/www/virtual';
     const FILE_CONFIG = '/etc/httpd/conf/httpd.conf';
+    const FILE_SSL_CONFIG = '/etc/httpd/conf.d/ssl.conf';
     const FILE_DEFAULT = 'clearos.default.conf';
     const TYPE_WEB_APP = 'web_app';
     const TYPE_WEB_SITE = 'web_site';
@@ -134,6 +137,7 @@ class Httpd extends Daemon
      *
      * @param string $site    web site
      * @param string $aliases aliases
+     * @param string $cert    certificate name
      * @param string $group   group owner
      * @param string $ftp     FTP enabled status
      * @param string $samba   file (Samba) enabled status
@@ -144,7 +148,7 @@ class Httpd extends Daemon
      * @throws Validation_Exception, Engine_Exception
      */
 
-    function add_site($site, $aliases, $group, $ftp, $samba, $type, $options = NULL)
+    function add_site($site, $aliases, $cert, $group, $ftp, $samba, $type, $options = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -172,7 +176,7 @@ class Httpd extends Daemon
         // Use set_site to do the rest
         //----------------------------
 
-        $this->_set_core_info($site, $aliases, $group, $ftp, $samba, $type, $options);
+        $this->_set_core_info($site, $aliases, $cert, $group, $ftp, $samba, $type, $options);
     }
 
     /**
@@ -216,6 +220,32 @@ class Httpd extends Daemon
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
         return $retval;
+    }
+
+    /**
+     * Gets default server certificate name.
+     *
+     * @return string certificate name
+     *
+     * @throws Engine_Exception
+     */
+
+    function get_default_certificate()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        try {
+            $file = new File(self::FILE_SSL_CONFIG);
+            $retval = $file->lookup_value("/^[ \t]*SSLCertificateFile/");
+        } catch (File_No_Match_Exception $e) {
+            return "";
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+        }
+        if(preg_match("%/([^/]+)\.crt$%", $retval, $match)) {
+            return $match[1];
+        }
+        return "";
     }
 
     /**
@@ -379,10 +409,42 @@ class Httpd extends Daemon
     }
 
     /**
+     * Sets default server certificate name.
+     *
+     * @param string $cert certificate name
+     *
+     * @return array settings for a given host
+     * @throws Validation_Exception, Engine_Exception
+     */
+
+    function set_default_certificate($cert)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // Validate
+        //---------
+        // TODO is validation necessary?
+
+        // Update tag if it exists
+        //------------------------
+
+        $cert_files = Cert_Manager::get_cert($cert);
+
+        $file = new File(self::FILE_SSL_CONFIG);
+
+        $match = $file->replace_lines("/^[ \t]*SSLCertificateFile[ \t].*$/", "SSLCertificateFile ".Cert_Manager::CERT_PLACE."/$cert.".Cert_Manager::CERT_CRT."\n");
+
+        $match = $file->replace_lines("/^[ \t]*SSLCertificateKeyFile[ \t].*$/", "SSLCertificateKeyFile ".Cert_Manager::CERT_PLACE."/$cert.".Cert_Manager::CERT_KEY."\n");
+
+        $match = $file->replace_lines("/^#*[ \t]*SSLCACertificateFile[ \t].*$/", ($cert_files[Cert_Manager::CERT_CA] ? "" : "#")."SSLCACertificateFile ".Cert_Manager::CERT_PLACE."/$cert.".Cert_Manager::CERT_CA."\n");
+    }
+
+    /**
      * Sets parameters for a site.
      *
      * @param string $site    web site
      * @param string $aliases aliases
+     * @param string $cert    certificate name
      * @param string $group   group owner
      * @param string $ftp     FTP enabled status
      * @param string $samba   file enabled status
@@ -393,7 +455,7 @@ class Httpd extends Daemon
      * @throws  Engine_Exception
      */
 
-    function set_site($site, $aliases, $group, $ftp, $samba, $type, $options = NULL)
+    function set_site($site, $aliases, $cert, $group, $ftp, $samba, $type, $options = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -411,13 +473,13 @@ class Httpd extends Daemon
 
                     $flexshare->delete_share($site_name, FALSE);
                     $comment = lang('web_server_web_site') . ' - ' . $site;
-                    $this->add_site($site, $aliases, $group, $ftp, $samba, self::TYPE_WEB_SITE_DEFAULT, $options);
+                    $this->add_site($site, $aliases, $cert, $group, $ftp, $samba, self::TYPE_WEB_SITE_DEFAULT, $options);
                     return;
                 }
             }
         }
 
-        $this->_set_core_info($site, $aliases, $group, $ftp, $samba, $type, $options);
+        $this->_set_core_info($site, $aliases, $cert, $group, $ftp, $samba, $type, $options);
     }
 
     /**
@@ -547,6 +609,7 @@ class Httpd extends Daemon
      *
      * @param string $site    site name
      * @param string $aliases aliases
+     * @param string $cert    certificate name
      * @param string $group   group owner
      * @param string $ftp     FTP enabled status
      * @param string $samba   file enabled status
@@ -557,7 +620,7 @@ class Httpd extends Daemon
      * @throws  Engine_Exception
      */
 
-    protected function _set_core_info($site, $aliases, $group, $ftp, $samba, $type, $options)
+    protected function _set_core_info($site, $aliases, $cert, $group, $ftp, $samba, $type, $options)
     {
         clearos_profile(__METHOD__, __LINE__);
     
@@ -646,6 +709,8 @@ class Httpd extends Daemon
             $flexshare->set_web_cgi($site, $options['cgi']);
 
         $flexshare->set_web_enabled($site, TRUE);
+
+        $flexshare->set_web_certificate($site, $cert);
 
         // Globals
         $flexshare->set_group($site, $group);

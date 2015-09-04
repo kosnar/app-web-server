@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'web_server';
-$app['version'] = '2.1.8';
+$app['version'] = '2.1.10';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -55,7 +55,8 @@ $app['core_requires'] = array(
 );
 
 $app['core_directory_manifest'] = array(
-    '/var/clearos/httpd' => array(),
+    '/var/clearos/web_server' => array(),
+    '/var/clearos/web_server/backup' => array(),
     '/var/www/virtual' => array()
 );
 

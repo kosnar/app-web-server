@@ -61,7 +61,6 @@ use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\flexshare\Flexshare as Flexshare;
 use \clearos\apps\groups\Group_Factory as Group_Factory;
 use \clearos\apps\network\Hostname as Hostname;
-use \clearos\apps\certificate_manager\Cert_Manager;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
@@ -69,7 +68,6 @@ clearos_load_library('base/Folder');
 clearos_load_library('flexshare/Flexshare');
 clearos_load_library('groups/Group_Factory');
 clearos_load_library('network/Hostname');
-clearos_load_library('certificate_manager/Cert_Manager');
 
 // Exceptions
 //-----------
@@ -137,7 +135,6 @@ class Httpd extends Daemon
      *
      * @param string $site    web site
      * @param string $aliases aliases
-     * @param string $cert    certificate name
      * @param string $group   group owner
      * @param string $ftp     FTP enabled status
      * @param string $samba   file (Samba) enabled status
@@ -148,7 +145,7 @@ class Httpd extends Daemon
      * @throws Validation_Exception, Engine_Exception
      */
 
-    function add_site($site, $aliases, $cert, $group, $ftp, $samba, $type, $options = NULL)
+    function add_site($site, $aliases, $group, $ftp, $samba, $type, $options = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -176,7 +173,7 @@ class Httpd extends Daemon
         // Use set_site to do the rest
         //----------------------------
 
-        $this->_set_core_info($site, $aliases, $cert, $group, $ftp, $samba, $type, $options);
+        $this->_set_core_info($site, $aliases, $group, $ftp, $samba, $type, $options);
     }
 
     /**
@@ -444,7 +441,6 @@ class Httpd extends Daemon
      *
      * @param string $site    web site
      * @param string $aliases aliases
-     * @param string $cert    certificate name
      * @param string $group   group owner
      * @param string $ftp     FTP enabled status
      * @param string $samba   file enabled status
@@ -455,7 +451,7 @@ class Httpd extends Daemon
      * @throws  Engine_Exception
      */
 
-    function set_site($site, $aliases, $cert, $group, $ftp, $samba, $type, $options = NULL)
+    function set_site($site, $aliases, $group, $ftp, $samba, $type, $options = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -473,13 +469,13 @@ class Httpd extends Daemon
 
                     $flexshare->delete_share($site_name, FALSE);
                     $comment = lang('web_server_web_site') . ' - ' . $site;
-                    $this->add_site($site, $aliases, $cert, $group, $ftp, $samba, self::TYPE_WEB_SITE_DEFAULT, $options);
+                    $this->add_site($site, $aliases, $group, $ftp, $samba, self::TYPE_WEB_SITE_DEFAULT, $options);
                     return;
                 }
             }
         }
 
-        $this->_set_core_info($site, $aliases, $cert, $group, $ftp, $samba, $type, $options);
+        $this->_set_core_info($site, $aliases, $group, $ftp, $samba, $type, $options);
     }
 
     /**
@@ -609,7 +605,6 @@ class Httpd extends Daemon
      *
      * @param string $site    site name
      * @param string $aliases aliases
-     * @param string $cert    certificate name
      * @param string $group   group owner
      * @param string $ftp     FTP enabled status
      * @param string $samba   file enabled status
@@ -620,7 +615,7 @@ class Httpd extends Daemon
      * @throws  Engine_Exception
      */
 
-    protected function _set_core_info($site, $aliases, $cert, $group, $ftp, $samba, $type, $options)
+    protected function _set_core_info($site, $aliases, $group, $ftp, $samba, $type, $options)
     {
         clearos_profile(__METHOD__, __LINE__);
     
@@ -687,6 +682,9 @@ class Httpd extends Daemon
         if (isset($options['require_authentication']))
             $flexshare->set_web_require_authentication($site, $options['require_authentication']);
 
+        if (isset($options['ssl_certificate']))
+            $flexshare->set_web_ssl_certificate($site, $options['ssl_certificate']);
+
         if (isset($options['require_ssl']))
             $flexshare->set_web_require_ssl($site, $options['require_ssl']);
 
@@ -709,8 +707,6 @@ class Httpd extends Daemon
             $flexshare->set_web_cgi($site, $options['cgi']);
 
         $flexshare->set_web_enabled($site, TRUE);
-
-        $flexshare->set_web_certificate($site, $cert);
 
         // Globals
         $flexshare->set_group($site, $group);

@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'web_server';
-$app['version'] = '2.1.10';
+$app['version'] = '2.1.20';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -41,9 +41,9 @@ $app['requires'] = array(
 );
 
 $app['core_requires'] = array(
+    'app-certificate-manager >= 1:2.1.20',
     'app-network-core',
-    'app-flexshare-core >= 2.0.19',
-    'app-certificate-manager-core >= 2.0.21',
+    'app-flexshare-core >= 1:2.1.20',
     'app-php-core >= 1:1.4.40',
     'httpd >= 2.2.15',
     'mod_authnz_external',

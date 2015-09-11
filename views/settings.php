@@ -7,7 +7,7 @@
  * @package    web-server
  * @subpackage views
  * @author     ClearFoundation <developer@clearfoundation.com>
- * @copyright  2012 ClearFoundation
+ * @copyright  2012-2015 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
  * @link       http://www.clearfoundation.com/docs/developer/apps/web_server/
  */
@@ -33,11 +33,8 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-use \clearos\apps\certificate_manager\Cert_Manager;
-
 $this->lang->load('base');
 $this->lang->load('web_server');
-$this->lang->load('certificate-manager');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form handler
@@ -64,8 +61,6 @@ echo form_open('web_server/settings/edit');
 echo form_header(lang('base_settings'));
 
 echo field_input('server_name', $server_name, lang('web_server_server_name'), $read_only);
-
-echo field_dropdown('certificate', Cert_Manager::get_certs_names(), $certificate, lang('certificate_manager_cert'), $read_only);
 
 echo field_button_set($buttons);
 

@@ -1,7 +1,7 @@
 
 Name: app-web-server
 Epoch: 1
-Version: 2.1.10
+Version: 2.1.20
 Release: 1%{dist}
 Summary: Web Server
 License: GPLv3
@@ -23,8 +23,9 @@ Summary: Web Server - Core
 License: LGPLv3
 Group: ClearOS/Libraries
 Requires: app-base-core
+Requires: app-certificate-manager >= 1:2.1.20
 Requires: app-network-core
-Requires: app-flexshare-core >= 1:1.5.22
+Requires: app-flexshare-core >= 1:2.1.20
 Requires: app-php-core >= 1:1.4.40
 Requires: httpd >= 2.2.15
 Requires: mod_authnz_external
@@ -48,7 +49,8 @@ This package provides the core API and libraries.
 mkdir -p -m 755 %{buildroot}/usr/clearos/apps/web_server
 cp -r * %{buildroot}/usr/clearos/apps/web_server/
 
-install -d -m 0755 %{buildroot}/var/clearos/httpd
+install -d -m 0755 %{buildroot}/var/clearos/web_server
+install -d -m 0755 %{buildroot}/var/clearos/web_server/backup
 install -d -m 0755 %{buildroot}/var/www/virtual
 install -D -m 0644 packaging/filewatch-web-server-configuration.conf %{buildroot}/etc/clearsync.d/filewatch-web-server-configuration.conf
 install -D -m 0644 packaging/httpd.php %{buildroot}/var/clearos/base/daemon/httpd.php
@@ -90,7 +92,8 @@ exit 0
 %defattr(-,root,root)
 %exclude /usr/clearos/apps/web_server/packaging
 %dir /usr/clearos/apps/web_server
-%dir /var/clearos/httpd
+%dir /var/clearos/web_server
+%dir /var/clearos/web_server/backup
 %dir /var/www/virtual
 /usr/clearos/apps/web_server/deploy
 /usr/clearos/apps/web_server/language

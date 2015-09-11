@@ -33,12 +33,9 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-use \clearos\apps\certificate_manager\Cert_Manager;
-
 $this->lang->load('base');
 $this->lang->load('groups');
 $this->lang->load('flexshare');
-$this->lang->load('certificate_manager');
 $this->lang->load('web_server');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -93,8 +90,6 @@ echo fieldset_header(lang('web_server_web_site'));
 echo field_input('site', $info['Name'], lang('web_server_web_site_hostname'), $site_read_only);
 echo field_input('aliases', $info['WebServerAlias'], lang('web_server_aliases'), $read_only);
 
-echo field_dropdown('certificate', Cert_Manager::get_certs_names(), $info['WebCertificate'], lang('certificate_manager_cert'), false);
-
 echo fieldset_footer();
 
 // Upload information 
@@ -117,6 +112,7 @@ echo fieldset_footer();
 echo fieldset_header(lang('flexshare_options'));
 echo field_dropdown('web_access', $accessibility_options, $info['WebAccess'], lang('flexshare_web_accessibility'), $read_only);
 echo field_toggle_enable_disable('require_authentication', $info['WebReqAuth'], lang('flexshare_web_require_authentication'), $read_only);
+echo field_dropdown('ssl_certificate', $ssl_certificate_options, $info['WebSslCertificate'], lang('flexshare_ssl_certificate'), $read_only);
 echo field_toggle_enable_disable('show_index', $info['WebShowIndex'], lang('flexshare_web_show_index'), $read_only);
 echo field_toggle_enable_disable('follow_symlinks', $info['WebFollowSymLinks'], lang('flexshare_web_follow_symlinks'), $read_only);
 echo field_toggle_enable_disable('ssi', $info['WebAllowSSI'], lang('flexshare_web_allow_ssi'), $read_only);

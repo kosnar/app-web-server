@@ -37,7 +37,6 @@ use \Exception as Exception;
 
 use \clearos\apps\web_server\Httpd as Httpd;
 use \clearos\apps\flexshare\Flexshare as Flexshare;
-use \clearos\apps\certificate_manager\Cert_Manager;
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -313,7 +312,6 @@ class Sites extends ClearOS_Controller
         $this->lang->load('web_server');
         $this->load->library('web_server/Httpd');
         $this->load->library('flexshare/Flexshare');
-        $this->load->library('certificate_manager/Cert_Manager');
         $this->load->factory('groups/Group_Manager_Factory');
 
         // Set validation rules
@@ -340,6 +338,7 @@ class Sites extends ClearOS_Controller
 
         $this->form_validation->set_policy('web_access', 'flexshare/Flexshare', 'validate_web_access', TRUE);
         $this->form_validation->set_policy('require_authentication', 'flexshare/Flexshare', 'validate_web_require_authentication', TRUE);
+        $this->form_validation->set_policy('ssl_certificate', 'flexshare/Flexshare', 'validate_web_ssl_certificate', TRUE);
         $this->form_validation->set_policy('show_index', 'flexshare/Flexshare', 'validate_web_show_index', TRUE);
         $this->form_validation->set_policy('follow_symlinks', 'flexshare/Flexshare', 'validate_web_follow_symlinks', TRUE);
         $this->form_validation->set_policy('ssi', 'flexshare/Flexshare', 'validate_web_allow_ssi', TRUE);
@@ -363,6 +362,7 @@ class Sites extends ClearOS_Controller
             $options['htaccess'] = $this->input->post('htaccess');
             $options['php'] = $this->input->post('php');
             $options['cgi'] = $this->input->post('cgi');
+            $options['ssl_certificate'] = $this->input->post('ssl_certificate');
             $options['require_ssl'] = FALSE; // Hard code this for now
             $options['custom_configuration'] = FALSE;
 
@@ -374,7 +374,6 @@ class Sites extends ClearOS_Controller
                     $this->httpd->set_site(
                         $this->input->post('site'),
                         $this->input->post('aliases'),
-                        $this->input->post('certificate'),
                         $group,
                         $ftp_state,
                         $file_state,
@@ -387,7 +386,6 @@ class Sites extends ClearOS_Controller
                     $this->httpd->add_site(
                         $this->input->post('site'),
                         $this->input->post('aliases'),
-                        $this->input->post('certificate'),
                         $group,
                         $ftp_state,
                         $file_state,
@@ -413,6 +411,7 @@ class Sites extends ClearOS_Controller
             $data['ftp_available'] = clearos_app_installed('ftp');
             $data['file_available'] = clearos_app_installed('samba');
             $data['accessibility_options'] = $this->flexshare->get_web_access_options();
+            $data['ssl_certificate_options'] = $this->flexshare->get_web_ssl_certificate_options();
 
             $data['site'] = $site;
 

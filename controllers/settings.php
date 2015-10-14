@@ -116,7 +116,6 @@ class Settings extends ClearOS_Controller
 
             try {
                 $this->httpd->set_server_name($this->input->post('server_name'));
-                $this->httpd->set_default_certificate($this->input->post('certificate'));
 
                 $this->page->set_status_updated();
                 redirect('/web_server/settings');
@@ -132,7 +131,6 @@ class Settings extends ClearOS_Controller
         try {
             $data['form_type'] = $form_type;
             $data['server_name'] = $this->httpd->get_server_name();
-            $data['certificate'] = $this->httpd->get_default_certificate();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;

@@ -220,32 +220,6 @@ class Httpd extends Daemon
     }
 
     /**
-     * Gets default server certificate name.
-     *
-     * @return string certificate name
-     *
-     * @throws Engine_Exception
-     */
-
-    function get_default_certificate()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        try {
-            $file = new File(self::FILE_SSL_CONFIG);
-            $retval = $file->lookup_value("/^[ \t]*SSLCertificateFile/");
-        } catch (File_No_Match_Exception $e) {
-            return "";
-        } catch (Exception $e) {
-            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
-        }
-        if(preg_match("%/([^/]+)\.crt$%", $retval, $match)) {
-            return $match[1];
-        }
-        return "";
-    }
-
-    /**
      * Returns configuration information for a given site.
      *
      * @param string $site web site
@@ -403,37 +377,6 @@ class Httpd extends Daemon
             if (! $match) 
                 $file->add_lines_after("ServerName $server_name\n", "/^[^#]/");
         }
-    }
-
-    /**
-     * Sets default server certificate name.
-     *
-     * @param string $cert certificate name
-     *
-     * @return array settings for a given host
-     * @throws Validation_Exception, Engine_Exception
-     */
-
-    function set_default_certificate($cert)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // Validate
-        //---------
-        // TODO is validation necessary?
-
-        // Update tag if it exists
-        //------------------------
-
-        $cert_files = Cert_Manager::get_cert($cert);
-
-        $file = new File(self::FILE_SSL_CONFIG);
-
-        $match = $file->replace_lines("/^[ \t]*SSLCertificateFile[ \t].*$/", "SSLCertificateFile ".Cert_Manager::CERT_PLACE."/$cert.".Cert_Manager::CERT_CRT."\n");
-
-        $match = $file->replace_lines("/^[ \t]*SSLCertificateKeyFile[ \t].*$/", "SSLCertificateKeyFile ".Cert_Manager::CERT_PLACE."/$cert.".Cert_Manager::CERT_KEY."\n");
-
-        $match = $file->replace_lines("/^#*[ \t]*SSLCACertificateFile[ \t].*$/", ($cert_files[Cert_Manager::CERT_CA] ? "" : "#")."SSLCACertificateFile ".Cert_Manager::CERT_PLACE."/$cert.".Cert_Manager::CERT_CA."\n");
     }
 
     /**

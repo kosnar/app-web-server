@@ -101,11 +101,13 @@ class Settings extends ClearOS_Controller
 
         $this->lang->load('web_server');
         $this->load->library('web_server/Httpd');
+        $this->load->library('flexshare/Flexshare');
 
         // Set validation rules
         //---------------------
 
         $this->form_validation->set_policy('server_name', 'web_server/Httpd', 'validate_server_name', TRUE);
+        $this->form_validation->set_policy('ssl_certificate', 'flexshare/Flexshare', 'validate_web_ssl_certificate', TRUE);
 
         $form_ok = $this->form_validation->run();
 
@@ -116,7 +118,13 @@ class Settings extends ClearOS_Controller
 
             try {
                 $this->httpd->set_server_name($this->input->post('server_name'));
+                $this->httpd->set_default_certificate($this->input->post('ssl_certificate'));
 
+                try {
+                    $this->httpd->reset(TRUE);
+                } catch (Exception $e) {
+                    // Not fatal
+                }
                 $this->page->set_status_updated();
                 redirect('/web_server/settings');
             } catch (Exception $e) {
@@ -131,6 +139,8 @@ class Settings extends ClearOS_Controller
         try {
             $data['form_type'] = $form_type;
             $data['server_name'] = $this->httpd->get_server_name();
+            $data['default_certificate'] = $this->httpd->get_default_certificate();
+            $data['ssl_certificate_options'] = $this->flexshare->get_web_ssl_certificate_options();
         } catch (Exception $e) {
             $this->page->view_exception($e);
             return;

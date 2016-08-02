@@ -61,6 +61,8 @@ echo form_open('web_server/settings/edit');
 echo form_header(lang('base_settings'));
 
 echo field_input('server_name', $server_name, lang('web_server_server_name'), $read_only);
+if(!$read_only)
+    echo field_dropdown('ssl_certificate', $ssl_certificate_options, $default_certificate, lang('flexshare_ssl_certificate'), $read_only);
 
 echo field_button_set($buttons);
 

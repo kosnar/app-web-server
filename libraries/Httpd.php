@@ -61,6 +61,7 @@ use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\flexshare\Flexshare as Flexshare;
 use \clearos\apps\groups\Group_Factory as Group_Factory;
 use \clearos\apps\network\Hostname as Hostname;
+use \clearos\apps\certificate_manager\Certificate_Manager;
 
 clearos_load_library('base/Daemon');
 clearos_load_library('base/File');
@@ -217,6 +218,31 @@ class Httpd extends Daemon
             throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
         }
         return $retval;
+    }
+
+    /**
+     * Gets name of default server certificate
+     *
+     * @return string certificate name
+     *
+     * @throws Engine_Exception
+     */
+    function get_default_certificate()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+        
+        try {
+            $file = new File(self::FILE_SSL_CONFIG);
+            $retval = $file->lookup_value("/^[ \t]*SSLCertificateFile/");
+        } catch (File_No_Match_Exception $e) {
+            return Certificate_Manager::DEFAULT_CERT;
+        } catch (Exception $e) {
+            throw new Engine_Exception(clearos_exception_message($e), CLEAROS_ERROR);
+        }
+        if(preg_match("%/etc/clearos/certificate_manager.d/%", $retval) && preg_match("%/([^/]+)\.crt$%", $retval, $match)) {
+            return $match[1];
+        }
+        return Certificate_Manager::DEFAULT_CERT;
     }
 
     /**
@@ -377,6 +403,44 @@ class Httpd extends Daemon
             if (! $match) 
                 $file->add_lines_after("ServerName $server_name\n", "/^[^#]/");
         }
+    }
+
+    /**
+     * Sets default server certificate.
+     *
+     * @param string $cert certificate name
+     *
+     * @return array settings for a given host
+     * @throws Validation_Exception, Engine_Exception
+     */
+    function set_default_certificate($cert)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $cert = empty($cert) ? Certificate_Manager::DEFAULT_CERT : $cert;
+
+        $certificate_manager = new Certificate_Manager();
+        $certs = $certificate_manager->get_certificates();
+
+        // Use default if specified certificate no longer exists
+        if (!array_key_exists($cert, $certs))
+        	$cert = Certificate_Manager::DEFAULT_CERT;
+
+        $cert_files = $certs[$cert];
+
+        $file = new File(self::FILE_SSL_CONFIG);
+
+        $match = $file->replace_lines("/^[ \t]*SSLCertificateFile[ \t].*$/", "SSLCertificateFile " . $cert_files['certificate-filename'] . "\n");
+
+        $match = $file->replace_lines("/^[ \t]*SSLCertificateKeyFile[ \t].*$/", "SSLCertificateKeyFile " . $cert_files['key-filename'] . "\n");
+
+        $line = "SSLCACertificateFile ";
+        if (array_key_exists('intermediate-filename', $cert_files)) {
+            $line = $line . $cert_files['intermediate-filename'];
+        } else {
+        	$line = '#' . $line;
+        }
+        $match = $file->replace_lines("/^#*[ \t]*SSLCACertificateFile[ \t]*.*$/", $line . "\n");
     }
 
     /**
@@ -561,7 +625,7 @@ class Httpd extends Daemon
     protected function _set_core_info($site, $aliases, $group, $ftp, $samba, $type, $options)
     {
         clearos_profile(__METHOD__, __LINE__);
-    
+
         Validation_Exception::is_valid($this->validate_site($site));
         Validation_Exception::is_valid($this->validate_aliases($aliases));
         Validation_Exception::is_valid($this->validate_group($group));
